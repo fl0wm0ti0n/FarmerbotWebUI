@@ -1,0 +1,27 @@
+﻿@implements IDisposable
+
+<h3>Settings</h3>
+<RadzenStack>
+    <RadzenCard>
+        <RadzenText Text="Settings Group 1" Style="font-synthesis-weight"></RadzenText>
+        <RadzenText Text="//TODO"></RadzenText>
+    </RadzenCard>
+    <RadzenCard>
+        <RadzenText Text="Settings Group 2" Style="font-synthesis-weight"></RadzenText>
+        <RadzenText Text="//TODO"></RadzenText>
+    </RadzenCard>
+    <RadzenCard>
+        <RadzenText Text="Settings Group 3" Style="font-synthesis-weight"></RadzenText>
+        <RadzenText Text="//TODO"></RadzenText>
+    </RadzenCard>
+    <RadzenButton class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(Dispose) Text="Save" ButtonStyle="ButtonStyle.Primary" />
+</RadzenStack>
+
+
+@code {
+
+    public void Dispose()
+    {
+
+    }
+}

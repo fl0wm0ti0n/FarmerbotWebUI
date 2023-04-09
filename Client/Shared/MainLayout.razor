@@ -1,0 +1,127 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject DialogService DialogService
+@inject TooltipService TooltipService
+@inject ContextMenuService ContextMenuService
+@inject NotificationService NotificationService
+@inject EventConsole console
+
+<RadzenDialog />
+<RadzenNotification />
+<RadzenTooltip />
+<RadzenContextMenu />
+
+<RadzenLayout style="grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body'">
+    <RadzenHeader>
+        <div class="container-fluid">
+             <RadzenRow class="row justify-content-start align-items-center">
+                <RadzenColumn Size="1" class="col-6 d-flex align-items-center ps-0 pl-0">
+                    <RadzenSidebarToggle Click="@SidebarToggleClick"></RadzenSidebarToggle>
+                </RadzenColumn>
+                <RadzenColumn Size="10" class="">
+                    @*//TODO maybe Status*@
+                </RadzenColumn>
+                <RadzenColumn Size="1" class="">
+                    <RadzenRow class="row align-items-center">
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" JustifyContent="JustifyContent.End" AlignItems="AlignItems.Center">
+                            <RadzenCard class="" Style="padding:unset; margin:unset; margin-top: 10px; margin-right: 10px;">
+                                <RadzenIcon @onclick="@OpenSettings" Icon="settings" Style="font-size: xx-large" Color="white" />
+                            </RadzenCard>
+                            <RadzenCard class="" Style="padding:unset; margin:unset; margin-top: 10px; margin-right: 10px;">
+                                <a href="https://github.com/fl0wm0ti0n" target="_blank" style="color:azure">
+                                    <RadzenIcon Icon="feedback" Style="font-size: xx-large" Color="white" />
+                                </a>
+                            </RadzenCard>
+                        </RadzenStack>
+                    </RadzenRow>
+                </RadzenColumn>
+            </RadzenRow>
+        </div>
+    </RadzenHeader>
+    <RadzenSidebar Expanded="@sidebarExpanded" style="z-index: 2">
+        <div class="py-3 py-lg-4" style="color: var(--rz-primary-light); padding: var(--rz-panel-menu-item-padding); border-bottom: var(--rz-panel-menu-item-border); display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+            <svg width="100" height="70" viewBox="0 0 100 70">
+                <use href="/images/tflogo-min_100px.svg#surface1"></use>
+            </svg>
+            <RadzenText Text="FarmerBotWebUI" TextStyle="Radzen.Blazor.TextStyle.Subtitle1" class="mb-0" style="color: var(--rz-primary-light);" />
+        </div>
+        <RadzenPanelMenu>
+            <RadzenPanelMenuItem class="rz-ripple" Text="Home" Icon="home" Path="/" />
+            <RadzenPanelMenuItem class="rz-ripple" Text="Dashboard" Icon="dashboard" Path="/dashboard" />
+        </RadzenPanelMenu>
+        <div class="py-3 py-md-4" style="padding: var(--rz-panel-menu-item-padding);">
+            <RadzenText Text="FarmerBotWebUI v1.0.0" TextStyle="Radzen.Blazor.TextStyle.Caption" style="color: var(--rz-text-disabled-color);" TagName="Radzen.Blazor.TagName.P" TextAlign="Radzen.TextAlign.Center" />
+            <RadzenText Text="Copyright Ⓒ 2023" TextStyle="Radzen.Blazor.TextStyle.Caption" class="mb-0" style="color: var(--rz-text-disabled-color);" TagName="Radzen.Blazor.TagName.P" TextAlign="Radzen.TextAlign.Center" />
+        </div>
+    </RadzenSidebar>
+    <RadzenBody Expanded="@sidebarExpanded" Style="margin: 0px; padding: 0px">
+        <RadzenSplitter Orientation="Orientation.Vertical" Collapse=@OnCollapse Expand=@OnExpand style="height: 100%; border: 1px solid rgba(0,0,0,.08);">
+            <RadzenSplitterPane Size="80%">
+                <RadzenSplitter Collapse=@OnCollapse Expand=@OnExpand>
+                    <RadzenSplitterPane Size="80%" Min="100px" Max="100%">
+                        @Body
+                    </RadzenSplitterPane>
+                </RadzenSplitter>
+            </RadzenSplitterPane>
+            <RadzenSplitterPane Size="20%">
+                <RadzenSplitter Collapse=@OnCollapseDisabled Resize=@OnResizeDisabled>
+                    <RadzenSplitterPane Size="20%" Min="50px" Max="80%">
+                        <EventConsole @ref=@console />
+                    </RadzenSplitterPane>
+                </RadzenSplitter>
+            </RadzenSplitterPane>
+        </RadzenSplitter>
+    </RadzenBody>
+</RadzenLayout>
+
+@code {
+    private bool sidebarExpanded = true;
+    private bool DialogAlreadyCreated = false;
+
+    // Settings dialog vars
+    private DialogPosition Position = DialogPosition.Right;
+    private bool CloseDialogOnOverlayClick = false;
+    private bool ShowMask = true;
+    private Task<Settings>? dialogResult = null;
+
+    private async Task OpenSettings()
+    {
+        dialogResult = await DialogService.OpenSideAsync<Settings>("Settings Panel", options: new SideDialogOptions { CloseDialogOnOverlayClick = CloseDialogOnOverlayClick, Position = Position, ShowMask = ShowMask });
+    }
+
+    private void CloseSettings()
+    {
+        DialogService.CloseSide(dialogResult);
+    }
+
+    private void SidebarToggleClick()
+    {
+        sidebarExpanded = !sidebarExpanded;
+    }
+
+    private void OnCollapse(RadzenSplitterEventArgs args)
+    {
+
+    }
+
+    private void OnExpand(RadzenSplitterEventArgs args)
+    {
+
+    }
+
+    private void OnResize(RadzenSplitterResizeEventArgs args)
+    {
+
+    }
+
+    private void OnCollapseDisabled(RadzenSplitterEventArgs args)
+    {
+        args.Cancel = true;
+    }
+
+    private void OnResizeDisabled(RadzenSplitterResizeEventArgs args)
+    {
+        args.Cancel = true;
+    }
+}

@@ -1,0 +1,111 @@
+﻿@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject DialogService DialogService
+@inject TooltipService TooltipService
+@inject ContextMenuService ContextMenuService
+@inject NotificationService NotificationService
+@inject IEventConsoleService EventConsoleService
+@implements IDisposable
+
+<RadzenCard class="rz-border-radius-0" Style="padding:unset; margin:unset; padding-right: 2px; padding-left: 2px">
+    <RadzenText class="rz-shadow-3" Style="margin-bottom: 4px">Event Console</RadzenText>
+    <RadzenRow Style="padding-bottom: 2px; padding-top: 2px; height: 30px">
+        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" class="" Size="1">
+            <RadzenText Style="font-weight:500">Timestamp</RadzenText>
+        </RadzenColumn>
+        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" class="" Size="1">
+            <RadzenText Style="font-weight:500">Message Id</RadzenText>
+        </RadzenColumn>
+        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" Size="1">
+            <RadzenText Style="font-weight:500">Severity</RadzenText>
+        </RadzenColumn>
+        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" Size="1">
+            <RadzenText Style="font-weight:500">Source</RadzenText>
+        </RadzenColumn>
+        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" Size="1">
+            <RadzenText Style="font-weight:500">Title</RadzenText>
+        </RadzenColumn>
+        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" Size="1">
+            <RadzenText Style="font-weight:500">Result</RadzenText>
+        </RadzenColumn>
+        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" Size="6">
+            <RadzenText Style="font-weight:500">Message</RadzenText>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenCard>
+<RadzenCard Style="height: 100%; width: 100%; padding:unset; padding-right: 2px; padding-left: 2px" class="rz-border-radius-0">
+    @foreach (var message in EventConsoleService.Messages)
+    {
+        <RadzenRow class="@GetSeverityClass(message)" Style="margin-bottom: 2px; padding-top: 2px; height: 25px">
+            @if (message.ShowPrograssBar)
+            {
+                <RadzenColumn Size="1" >
+                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300" class="rz-border-color-base-700">@message.Title</RadzenText>
+                </RadzenColumn>
+                <RadzenColumn Size="10" class="align-content-center justify-content-center">
+                    <RadzenProgressBar ProgressBarStyle="@GetStyle(message)" Style="height: 8px; width: 100%; margin-top: 6px" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" class="rz-border-radius-0" />
+                </RadzenColumn>
+            }
+            else
+            {
+                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"), args))">
+                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
+                </RadzenColumn>
+                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Id.ToString(), args))">
+                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Id.ToString()</RadzenText>
+                </RadzenColumn>
+                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Severity.ToString(), args))">
+                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Severity.ToString()</RadzenText>
+                </RadzenColumn>
+                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Source.ToString(), args))">
+                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Source.ToString()</RadzenText>
+                </RadzenColumn>
+                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Title, args))">
+                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Title</RadzenText>
+                </RadzenColumn>
+                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Result.ToString(), args))">
+                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Result.ToString()</RadzenText>
+                </RadzenColumn>
+                <RadzenColumn Size="6" MouseEnter="@(args => ShowTooltip(message.Message, args))">
+                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Message</RadzenText>
+                </RadzenColumn>
+            }
+        </RadzenRow>
+    }
+</RadzenCard>
+
+@code {
+    private int messageId = 0;
+
+    void ShowTooltip(string info, ElementReference elementReference) => TooltipService.Open(elementReference, info, new TooltipOptions() { Delay = 1000, Duration = 10000, Style = "background: var(--rz-base-400); color: black" });
+
+    private string GetSeverityClass(EventMessage message)
+    {
+        return "justify-content-center align-items-center rz-shadow-3 " + LogLevelStyleMapper.LogLevelToRadzenCss(message.Severity);
+    }
+
+    private ProgressBarStyle GetStyle(EventMessage message)
+    {
+        return LogLevelStyleMapper.LogLevelToProgressBarStyle(message.Severity);
+    }
+
+    private void CloseConsole()
+    {
+        StateHasChanged();
+    }
+
+    private void ClearConsole()
+    {
+        EventConsoleService.ClearMessages();
+    }
+
+    protected override void OnInitialized()
+    {
+        EventConsoleService.EventConsoleChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        EventConsoleService.EventConsoleChanged -= StateHasChanged;
+    }
+}

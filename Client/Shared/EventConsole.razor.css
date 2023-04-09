@@ -1,0 +1,85 @@
+﻿/* EventConsole.razor.css */
+.event-console {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 400px;
+    height: 300px;
+    background-color: #fff;
+    border-top-left-radius: 5px;
+    border-top: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+    box-shadow: 0 0 5px #ddd;
+    display: none;
+}
+
+    .event-console.show {
+        display: block;
+    }
+
+.event-console-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #ddd;
+    border-top-left-radius: 5px;
+}
+
+    .event-console-header h5 {
+        margin: 0;
+    }
+
+.close-btn {
+    border: none;
+    background-color: transparent;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.event-console-body {
+    height: 240px;
+    overflow: auto;
+    padding: 10px;
+}
+
+.event-console-message {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    padding: 5px;
+}
+
+    .event-console-message.information {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .event-console-message.warning {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .event-console-message.error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .event-console-message.critical {
+        background-color: #000;
+        color: #fff;
+    }
+
+.toggle-console-btn {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
