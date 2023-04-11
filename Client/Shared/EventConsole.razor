@@ -5,69 +5,73 @@
 @inject ContextMenuService ContextMenuService
 @inject NotificationService NotificationService
 @inject IEventConsoleService EventConsoleService
+@inject IDockerService DockerService
 @implements IDisposable
 
-<RadzenCard class="rz-border-radius-0" Style="padding:unset; margin:unset; padding-right: 2px; padding-left: 2px">
+<RadzenCard class="rz-border-radius-0" Style="padding:unset; margin:unset; padding-right: 2px; padding-left: 2px; border-top: 1px solid rgb(43, 55, 60); border-bottom: 1px solid rgb(43, 55, 60);">
     <RadzenText class="rz-shadow-3" Style="margin-bottom: 4px">Event Console</RadzenText>
-    <RadzenRow Style="padding-bottom: 2px; padding-top: 2px; height: 30px">
-        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" class="" Size="1">
-            <RadzenText Style="font-weight:500">Timestamp</RadzenText>
+    <RadzenRow Style="padding-bottom: 4px; height: 25px">
+        <RadzenColumn Style="padding-left: 8px; border-right:solid; border-right-width:thin; border-right-color: rgb(69, 86, 94)" class="" Size="1">
+            <RadzenText Style="font-weight:300; color: rgb(198, 183, 141)">Timestamp</RadzenText>
         </RadzenColumn>
-        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" class="" Size="1">
-            <RadzenText Style="font-weight:500">Message Id</RadzenText>
+        <RadzenColumn Style="padding-left: 8px; border-right:solid; border-right-width:thin; border-right-color: rgb(69, 86, 94)" class="" Size="1">
+            <RadzenText Style="font-weight:300; color: rgb(198, 183, 141)">Message Id</RadzenText>
         </RadzenColumn>
-        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" Size="1">
-            <RadzenText Style="font-weight:500">Severity</RadzenText>
+        <RadzenColumn Style="padding-left: 8px; border-right:solid; border-right-width:thin; border-right-color: rgb(69, 86, 94)" Size="1">
+            <RadzenText Style="font-weight:300; color: rgb(198, 183, 141)">Severity</RadzenText>
         </RadzenColumn>
-        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" Size="1">
-            <RadzenText Style="font-weight:500">Source</RadzenText>
+        <RadzenColumn Style="padding-left: 8px; border-right:solid; border-right-width:thin; border-right-color: rgb(69, 86, 94)" Size="1">
+            <RadzenText Style="font-weight:300; color: rgb(198, 183, 141)">Source</RadzenText>
         </RadzenColumn>
-        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" Size="1">
-            <RadzenText Style="font-weight:500">Title</RadzenText>
+        <RadzenColumn Style="padding-left: 8px; border-right:solid; border-right-width:thin; border-right-color: rgb(69, 86, 94)" Size="1">
+            <RadzenText Style="font-weight:300; color: rgb(198, 183, 141)">Title</RadzenText>
         </RadzenColumn>
-        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" Size="1">
-            <RadzenText Style="font-weight:500">Result</RadzenText>
+        <RadzenColumn Style="padding-left: 8px; border-right:solid; border-right-width:thin; border-right-color: rgb(69, 86, 94)" Size="1">
+            <RadzenText Style="font-weight:300; color: rgb(198, 183, 141)">Result</RadzenText>
         </RadzenColumn>
-        <RadzenColumn Style="padding: 2px; border-right:solid; border-right-width:thin; border-right-color: var(--rz-base-500)" Size="6">
-            <RadzenText Style="font-weight:500">Message</RadzenText>
+        <RadzenColumn Style="padding-left: 8px;" Size="6">
+            <RadzenText Style="font-weight:300; color: rgb(198, 183, 141)">Message</RadzenText>
         </RadzenColumn>
     </RadzenRow>
 </RadzenCard>
-<RadzenCard Style="height: 100%; width: 100%; padding:unset; padding-right: 2px; padding-left: 2px" class="rz-border-radius-0">
+<RadzenCard Style="height: 100%; width: 100%; padding:unset; padding-right: 2px; padding-left: 2px; overflow: auto;" class="rz-border-radius-0">
     @foreach (var message in EventConsoleService.Messages)
     {
-        <RadzenRow class="@GetSeverityClass(message)" Style="margin-bottom: 2px; padding-top: 2px; height: 25px">
+        <RadzenRow class="@GetSeverityClass(message)" Style="margin-bottom: 2px; height: 25px">
             @if (message.ShowPrograssBar)
             {
                 <RadzenColumn Size="1" >
-                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300" class="rz-border-color-base-700">@message.Title</RadzenText>
+                    <RadzenText onclick="@(() => OpenEventDialog(message))" Style="padding-top: 2px; padding-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300" class="rz-border-color-base-700">@message.Title</RadzenText>
                 </RadzenColumn>
                 <RadzenColumn Size="10" class="align-content-center justify-content-center">
-                    <RadzenProgressBar ProgressBarStyle="@GetStyle(message)" Style="height: 8px; width: 100%; margin-top: 6px" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" class="rz-border-radius-0" />
+                    <RadzenProgressBar ProgressBarStyle="@GetStyle(message)" Style="height: 8px; width: 100%; margin-top: 9px; " Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" class="rz-border-radius-0" />
+                </RadzenColumn>
+                <RadzenColumn Size="1">
+                    <RadzenButton Size="ButtonSize.ExtraSmall" Style="margin-bottom: 4px;" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => DockerService.CancelOperation(message.Action)) Text="Cancel" ButtonStyle="ButtonStyle.Danger" Disabled="@(!message.GetResultAsBool())" />
                 </RadzenColumn>
             }
             else
             {
-                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"), args))">
-                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
+                <RadzenColumn Size="1" >
+                    <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"), args))" Style="padding-top: 2px; padding-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Id.ToString(), args))">
-                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Id.ToString()</RadzenText>
+                <RadzenColumn Size="1" >
+                    <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Id.ToString(), args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Id.ToString()</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Severity.ToString(), args))">
-                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Severity.ToString()</RadzenText>
+                <RadzenColumn Size="1" >
+                    <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Severity.ToString(), args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Severity.ToString()</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Source.ToString(), args))">
-                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Source.ToString()</RadzenText>
+                <RadzenColumn Size="1" >
+                    <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Source.ToString(), args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Source.ToString()</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Title, args))">
-                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Title</RadzenText>
+                <RadzenColumn Size="1" >
+                    <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Title, args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Title</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="1" MouseEnter="@(args => ShowTooltip(message.Result.ToString(), args))">
-                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Result.ToString()</RadzenText>
+                <RadzenColumn Size="1" >
+                    <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Result.ToString(), args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Result.ToString()</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="6" MouseEnter="@(args => ShowTooltip(message.Message, args))">
-                    <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Message</RadzenText>
+                <RadzenColumn Size="6" >
+                    <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Message, args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Message</RadzenText>
                 </RadzenColumn>
             }
         </RadzenRow>
@@ -75,9 +79,26 @@
 </RadzenCard>
 
 @code {
-    private int messageId = 0;
 
-    void ShowTooltip(string info, ElementReference elementReference) => TooltipService.Open(elementReference, info, new TooltipOptions() { Delay = 1000, Duration = 10000, Style = "background: var(--rz-base-400); color: black" });
+    public async Task OpenEventDialog(EventMessage message)
+    {
+        await DialogService.OpenAsync<EventDialog>($"Event: {message.Title}", 
+            new Dictionary<string, object>() { { "Message", message } },
+            new DialogOptions() 
+            { 
+                Resizable = true, 
+                Draggable = true, 
+                CloseDialogOnEsc = true 
+            });
+    }
+
+    void ShowTooltip(string info, ElementReference elementReference) => TooltipService.Open(elementReference, info, 
+            new TooltipOptions() 
+            { 
+                Delay = 1000, 
+                Duration = 10000, 
+                    Style = "background: rgb(178, 222, 228); color: black; font-weight: 100; font-size:small; word-wrap: break-word;"
+            });
 
     private string GetSeverityClass(EventMessage message)
     {

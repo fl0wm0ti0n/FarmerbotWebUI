@@ -17,6 +17,7 @@ namespace FarmerbotWebUI.Shared
         public string Message { get; set; } = string.Empty;
         public MessageResult Result { get; set; } = MessageResult.Unknown;
         public bool ShowPrograssBar { get; set; } = false;
+        public ActionType Action { get; set; } = ActionType.Default;
 
         public bool GetResultAsBool()
         {
@@ -24,9 +25,9 @@ namespace FarmerbotWebUI.Shared
             {
                 MessageResult.Successfully => true,
                 MessageResult.Unsuccessfully => false,
-                MessageResult.Valueless => throw new NotImplementedException(),
-                MessageResult.Unknown => throw new NotImplementedException(),
-                _ => throw new NotImplementedException(),
+                MessageResult.Valueless => true,
+                MessageResult.Unknown => true,
+                _ => true,
             };
         }
 

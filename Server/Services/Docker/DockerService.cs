@@ -1,20 +1,55 @@
-﻿using FarmerbotWebUI.Shared;
+﻿using Docker.DotNet;
+using Docker.DotNet.Models;
+using FarmerbotWebUI.Client.Services.Docker;
+using FarmerbotWebUI.Shared;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace FarmerbotWebUI.Server.Services.Docker
 {
     public class DockerService : IDockerService
     {
+        private readonly IConfiguration _config;
         private readonly string _workingDirectory;
+        private readonly string _dockerComposeFile;
+        private readonly string _threefoldConfigFile;
+        private readonly string _farmerBotConfigFile;
+        private readonly string _farmerBotLogFile;
+        private readonly DockerClientConfiguration _dockerConfig;
+        private readonly string _endpoint;
+        private readonly DockerClient _client;
+        public FarmerBotStatus ActualFarmerBotStatus { get; private set; }
 
-        public DockerService(string workingDirectory)
+        public DockerService(IConfiguration configuration)
         {
-            _workingDirectory = workingDirectory;
+            _config = configuration;
+            _workingDirectory = _config.GetValue<string>("FarmerBotSettings:WorkingDirectory");
+            _dockerComposeFile = _config.GetValue<string>("FarmerBotSettings:ComposeFile");
+            _threefoldConfigFile = _config.GetValue<string>("FarmerBotSettings:ThreefoldNetworkFile");
+            _farmerBotConfigFile = _config.GetValue<string>("FarmerBotSettings:FarmerBotConfigFile");
+            _farmerBotLogFile = _config.GetValue<string>("FarmerBotSettings:FarmerBotLogFile");
         }
 
-        public async Task<ServiceResponse<string>> StartComposeAsync()
+        private string GetDockerPipe()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return _config.GetValue<string>("DockerSettings:DockerEndpointWindows");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return _config.GetValue<string>("DockerSettings:DockerEndpointLinux");
+            }
+            else
+            {
+                throw new PlatformNotSupportedException();
+            }
+        }
+
+        public async Task<ServiceResponse<string>> StartComposeAsync(CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", "compose up -d")
             {
@@ -25,32 +60,40 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
             string error = "";
             string output = "";
+            int exitCode = 0;
             try
             {
                 using var process = Process.Start(processStartInfo);
-                await process.WaitForExitAsync();
+                await process.WaitForExitAsync(cancellationToken);
 
                 output = await process.StandardOutput.ReadToEndAsync();
                 error = await process.StandardError.ReadToEndAsync();
+                exitCode = process.ExitCode;
             }
             catch (Exception ex)
             {
+                exitCode = 1;
                 error = ex.Message;
             }
 
             var result = string.IsNullOrWhiteSpace(output) ? error : output;
 
+            if (cancellationToken.IsCancellationRequested)
+            {
+                error = "Canceled";
+                exitCode = 1;
+            }
+
             ServiceResponse<string> response = new ServiceResponse<string>
             {
                 Data = result,
                 Message = error,
-                Success = string.IsNullOrWhiteSpace(error)
+                Success = exitCode > 0 ? false : true
             };
-            Thread.Sleep(5000);
             return response;
         }
 
-        public async Task<ServiceResponse<string>> StopComposeAsync()
+        public async Task<ServiceResponse<string>> StopComposeAsync(CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", "compose down")
             {
@@ -61,32 +104,93 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
             string error = "";
             string output = "";
+            int exitCode = 0;
             try
             {
                 using var process = Process.Start(processStartInfo);
-                await process.WaitForExitAsync();
+                await process.WaitForExitAsync(cancellationToken);
 
                 output = await process.StandardOutput.ReadToEndAsync();
                 error = await process.StandardError.ReadToEndAsync();
+                exitCode = process.ExitCode;
             }
             catch (Exception ex)
             {
+                exitCode = 1;
                 error = ex.Message;
             }
 
             var result = string.IsNullOrWhiteSpace(output) ? error : output;
 
+            if (cancellationToken.IsCancellationRequested)
+            {
+                error = "Canceled";
+                exitCode = 1;
+            }
+
             ServiceResponse<string> response = new ServiceResponse<string>
             {
                 Data = result,
                 Message = error,
-                Success = string.IsNullOrWhiteSpace(error)
+                Success = exitCode > 0 ? false : true
             };
-            Thread.Sleep(5000);
             return response;
         }
 
-        public async Task<ServiceResponse<string>> GetComposeListAsync()
+        public async Task<ServiceResponse<FarmerBotStatus>> GetComposeStatusAsync(CancellationToken cancellationToken)
+        {
+            var endpoint = GetDockerPipe(); // Endpoint für die Verbindung zur Docker-Engine
+            var dockerConfig = new DockerClientConfiguration(new Uri(_endpoint)); // Konfiguration für die Docker-Clientbibliothek
+            var client = _dockerConfig.CreateClient(); // Docker-Client-Objekt erstellen
+
+            var containerName = "mein-container"; // Name des Containers, dessen Status abgefragt werden soll
+
+            var containers = await _client.Containers.ListContainersAsync(new ContainersListParameters { All = true }); // Alle Container abrufen
+
+            var container = containers.FirstOrDefault(c => c.Names.Contains($"/{containerName}")); // Den Container anhand des Namens finden
+
+            if (container == null)
+            {
+                Console.WriteLine($"Container {containerName} nicht gefunden.");
+            }
+            else
+            {
+                var containerStatus = container.State; // Container-Status abrufen
+
+                Console.WriteLine($"Container-Status von {containerName}: {containerStatus}");
+            }
+
+
+            string error = "";
+            string output = "";
+            int exitCode = 0;
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                exitCode = 1;
+                error = ex.Message;
+            }
+
+            var result = string.IsNullOrWhiteSpace(output) ? error : output;
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                error = "Canceled";
+                exitCode = 1;
+            }
+            ServiceResponse<string> response = new ServiceResponse<string>
+            {
+                Data = result,
+                Message = error,
+                Success = exitCode > 0 ? false : true
+            };
+            throw new NotImplementedException();
+        }
+
+        public async Task<ServiceResponse<string>> GetComposeListAsync(CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", "compose ls")
             {
@@ -97,32 +201,41 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
             string error = "";
             string output = "";
+            int exitCode = 0;
             try
             {
                 using var process = Process.Start(processStartInfo);
-                await process.WaitForExitAsync();
+                await process.WaitForExitAsync(cancellationToken);
 
                 output = await process.StandardOutput.ReadToEndAsync();
                 error = await process.StandardError.ReadToEndAsync();
+                exitCode = process.ExitCode;
             }
             catch (Exception ex)
             {
+                exitCode = 1;
                 error = ex.Message;
             }
 
             var result = string.IsNullOrWhiteSpace(output) ? error : output;
 
+            if (cancellationToken.IsCancellationRequested)
+            {
+                error = "Canceled";
+                exitCode = 1;
+            }
+
             ServiceResponse<string> response = new ServiceResponse<string>
             {
                 Data = output,
                 Message = error,
-                Success = string.IsNullOrWhiteSpace(error)
+                Success = exitCode > 0 ? false : true
             };
 
             return response;
         }
 
-        public async Task<ServiceResponse<string>> GetComposeProcessesAsync()
+        public async Task<ServiceResponse<string>> GetComposeProcessesAsync(CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", "compose ps")
             {
@@ -133,20 +246,28 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
             string error = "";
             string output = "";
+            int exitCode = 0;
             try
             {
                 using var process = Process.Start(processStartInfo);
-                await process.WaitForExitAsync();
+                await process.WaitForExitAsync(cancellationToken);
 
                 output = await process.StandardOutput.ReadToEndAsync();
                 error = await process.StandardError.ReadToEndAsync();
             }
             catch (Exception ex)
             {
+                exitCode = 1;
                 error = ex.Message;
             }
 
             var result = string.IsNullOrWhiteSpace(output) ? error : output;
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                error = "Canceled";
+                exitCode = 1;
+            }
 
             ServiceResponse<string> response = new ServiceResponse<string>
             {
@@ -158,7 +279,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
             return response;
         }
 
-        public async Task<ServiceResponse<string>> GetComposeLogsAsync()
+        public async Task<ServiceResponse<string>> GetComposeLogsAsync(CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", "compose logs -f")
             {
@@ -169,184 +290,27 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
             string error = "";
             string output = "";
+            int exitCode = 0;
             try
             {
                 using var process = Process.Start(processStartInfo);
-                await process.WaitForExitAsync();
+                await process.WaitForExitAsync(cancellationToken);
 
                 output = await process.StandardOutput.ReadToEndAsync();
                 error = await process.StandardError.ReadToEndAsync();
             }
             catch (Exception ex)
             {
+                exitCode = 1;
                 error = ex.Message;
             }
 
             var result = string.IsNullOrWhiteSpace(output) ? error : output;
 
-            ServiceResponse<string> response = new ServiceResponse<string>
+            if (cancellationToken.IsCancellationRequested)
             {
-                Data = output,
-                Message = error,
-                Success = string.IsNullOrWhiteSpace(error)
-            };
-
-            return response;
-        }
-
-        public async Task<ServiceResponse<string>> GetLocalLogAsync(string path)
-        {
-            // If path is empty use workingdir + farmerbot.log
-            if (path == string.Empty || string.IsNullOrWhiteSpace(path))
-            {
-                path = $"{_workingDirectory}{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}farmerbot.log";
-            }
-
-            string error = "";
-            string output = "";
-            try
-            {
-                // read file
-                output = await File.ReadAllTextAsync(path);
-            }
-            catch (Exception ex)
-            {
-                // return error
-                error = ex.Message;
-            }
-
-            ServiceResponse<string> response = new ServiceResponse<string>
-            {
-                Data = output,
-                Message = error,
-                Success = string.IsNullOrWhiteSpace(error)
-            };
-
-            return response;
-        }
-
-        public async Task<ServiceResponse<string>> GetComposeFileAsync(string path)
-        {
-            // If path is empty use workingdir + docker-compose.yaml
-            if (path == string.Empty || string.IsNullOrWhiteSpace(path))
-            {
-                path = $"{_workingDirectory}{Path.DirectorySeparatorChar}docker-compose.yaml";
-            }
-
-            string error = "";
-            string output = "";
-            try
-            {
-                // read file
-                output = await File.ReadAllTextAsync(path);
-            }
-            catch (Exception ex)
-            {
-                // return error
-                error = ex.Message;
-            }
-
-            ServiceResponse<string> response = new ServiceResponse<string>
-            {
-                Data = output,
-                Message = error,
-                Success = string.IsNullOrWhiteSpace(error)
-            };
-
-            return response;
-        }
-
-        public async Task<ServiceResponse<string>> SetComposeFileAsync(string compose, string path)
-        {
-            // If path is empty use workingdir + docker-compose.yaml
-            if (path == string.Empty || string.IsNullOrWhiteSpace(path))
-            {
-                path = $"{_workingDirectory}{Path.DirectorySeparatorChar}docker-compose.yaml";
-            }
-
-            string error = "";
-            string output = "";
-            try
-            {
-                // read file
-                await File.WriteAllTextAsync(path, compose);
-            }
-            catch (Exception ex)
-            {
-                // return error
-                error = ex.Message;
-            }
-
-            ServiceResponse<string> response = new ServiceResponse<string>
-            {
-                Data = output,
-                Message = error,
-                Success = string.IsNullOrWhiteSpace(error)
-            };
-
-            return response;
-        }
-
-        public async Task<ServiceResponse<FarmerBotConfig>> GetMarkdownConfigAsync(string path)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<ServiceResponse<string>> GetRawMarkdownConfigAsync(string path)
-        {
-            // If path is empty use workingdir + config.md
-            if (path == string.Empty || string.IsNullOrWhiteSpace(path))
-            {
-                path = $"{_workingDirectory}{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}config.md";
-            }
-
-            string error = "";
-            string output = "";
-            try
-            {
-                // read file
-                output = await File.ReadAllTextAsync(path);
-            }
-            catch (Exception ex)
-            {
-                // return error
-                error = ex.Message;
-            }
-
-            ServiceResponse<string> response = new ServiceResponse<string>
-            {
-                Data = output,
-                Message = error,
-                Success = string.IsNullOrWhiteSpace(error)
-            };
-
-            return response;
-        }
-
-    public async Task<ServiceResponse<string>> SetMarkdownConfigAsync(FarmerBotConfig config, string path)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<ServiceResponse<string>> SetMarkdownConfigAsync(string config, string path)
-        {
-            // If path is empty use workingdir + config.md
-            if (path == string.Empty || string.IsNullOrWhiteSpace(path))
-            {
-                path = $"{_workingDirectory}{Path.DirectorySeparatorChar}config{Path.DirectorySeparatorChar}config.md";
-            }
-
-            string error = "";
-            string output = "";
-            try
-            {
-                // read file
-                await File.WriteAllTextAsync(path, config);
-            }
-            catch (Exception ex)
-            {
-                // return error
-                error = ex.Message;
+                error = "Canceled";
+                exitCode = 1;
             }
 
             ServiceResponse<string> response = new ServiceResponse<string>

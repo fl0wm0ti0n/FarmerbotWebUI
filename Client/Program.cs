@@ -1,8 +1,9 @@
 global using FarmerbotWebUI.Shared;
-using FarmerbotWebUI.Client;
-using FarmerbotWebUI.Client.Services.Docker;
-using FarmerbotWebUI.Client.Services.EventConsole;
-using FarmerbotWebUI.Client.Shared;
+global using FarmerbotWebUI.Client;
+global using FarmerbotWebUI.Client.Services.Docker;
+global using FarmerbotWebUI.Client.Services.Filesystem;
+global using FarmerbotWebUI.Client.Services.EventConsole;
+global using FarmerbotWebUI.Client.Shared;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Radzen;
@@ -11,6 +12,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+builder.Services.AddScoped<IFileService, FilesService>();
 builder.Services.AddScoped<IDockerService, DockerService>();
 builder.Services.AddScoped<IEventConsoleService, EventConsoleService>();
 builder.Services.AddScoped<DialogService>();

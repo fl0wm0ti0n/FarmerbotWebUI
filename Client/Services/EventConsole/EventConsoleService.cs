@@ -15,7 +15,7 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
         public List<EventMessage> GetMessages() => Messages;
         public EventMessage? GetMessage(int id) => Messages.FirstOrDefault(m => m.Id == id);
 
-        public int LogMessage(string message, LogLevel level, string title, MessageSource source, MessageResult result, bool showPrograssBar)
+        public int LogMessage(string message, LogLevel level, string title, MessageSource source, MessageResult result, ActionType action, bool showPrograssBar)
         {
             _messageId++;
             Messages.Add(new EventMessage { Id = _messageId, Timestamp = DateTime.Now, Message = message, Severity = level, Title = title, Source = source, Result = result, ShowPrograssBar = showPrograssBar });
@@ -24,7 +24,7 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
             return _messageId;
         }
 
-        public void UpdateMessage(DateTime? time, int messageId, string? message, LogLevel? level, string? title, MessageSource? source, MessageResult? result, bool? showPrograssBar)
+        public void UpdateMessage(DateTime? time, int messageId, string? message, LogLevel? level, string? title, MessageSource? source, MessageResult? result, ActionType action, bool? showPrograssBar)
         {
             var messageToUpdate = Messages.FirstOrDefault(m => m.Id == messageId);
 

@@ -1,6 +1,7 @@
 ﻿using FarmerbotWebUI.Shared;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
+using System.Threading;
 
 namespace FarmerbotWebUI.Server.Controllers
 {
@@ -16,86 +17,44 @@ namespace FarmerbotWebUI.Server.Controllers
         }
 
         [HttpGet("start")]
-        public async Task<ActionResult<ServiceResponse<string>>> StartComposeAsync()
+        public async Task<ActionResult<ServiceResponse<string>>> StartComposeAsync(CancellationToken cancellationToken)
         {
-            var output = await _dockerService.StartComposeAsync();
+            var output = await _dockerService.StartComposeAsync(cancellationToken);
             return Ok(output);
         }
 
         [HttpGet("stop")]
-        public async Task<ActionResult<ServiceResponse<string>>> StopComposeAsync()
+        public async Task<ActionResult<ServiceResponse<string>>> StopComposeAsync(CancellationToken cancellationToken)
         {
-            var output = await _dockerService.StopComposeAsync();
+            var output = await _dockerService.StopComposeAsync(cancellationToken);
             return Ok(output);
         }
 
         [HttpGet("ps")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetComposeProcessesAsync()
+        public async Task<ActionResult<ServiceResponse<string>>> GetComposeProcessesAsync(CancellationToken cancellationToken)
         {
-            var output = await _dockerService.GetComposeProcessesAsync();
+            var output = await _dockerService.GetComposeProcessesAsync(cancellationToken);
             return Ok(output);
         }
 
         [HttpGet("ls")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetComposeListAsync()
+        public async Task<ActionResult<ServiceResponse<string>>> GetComposeListAsync(CancellationToken cancellationToken)
         {
-            var output = await _dockerService.GetComposeListAsync();
+            var output = await _dockerService.GetComposeListAsync(cancellationToken);
             return Ok(output);
         }
 
         [HttpGet("livelog")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetComposeLogsAsync()
+        public async Task<ActionResult<ServiceResponse<string>>> GetComposeLogsAsync(CancellationToken cancellationToken)
         {
-            var output = await _dockerService.GetComposeLogsAsync();
+            var output = await _dockerService.GetComposeLogsAsync(cancellationToken);
             return Ok(output);
         }
 
-        [HttpGet("log/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetLocalLogAsync(string path)
+        [HttpGet("status")]
+        public async Task<ActionResult<ServiceResponse<FarmerBotStatus>>> GetComposeStatusAsync(CancellationToken cancellationToken)
         {
-            var output = await _dockerService.GetLocalLogAsync(path);
-            return Ok(output);
-        }
-
-        [HttpPost("compose/get/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetComposeFileAsync(string path)
-        {
-            var output = await _dockerService.GetComposeFileAsync(path);
-            return Ok(output);
-        }
-
-        [HttpPost("compose/set/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> SetComposeFileAsync([FromBody] string compose, string path)
-        {
-            var output = await _dockerService.SetComposeFileAsync(compose, path);
-            return Ok(output);
-        }
-
-        [HttpPost("markdown/get/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetMarkdownConfigAsync(string path)
-        {
-            var output = await _dockerService.GetMarkdownConfigAsync(path);
-            return Ok(output);
-        }
-
-        [HttpPost("markdown/getraw/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetRawMarkdownConfigAsync(string path)
-        {
-            var output = await _dockerService.GetRawMarkdownConfigAsync(path);
-            return Ok(output);
-        }
-
-        [HttpPost("markdown/set/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> SetMarkdownConfigAsync([FromBody] FarmerBotConfig compose, string path)
-        {
-            var output = await _dockerService.SetMarkdownConfigAsync(compose, path);
-            return Ok(output);
-        }
-
-        [HttpPost("markdown/setraw/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> SetRawMarkdownConfigAsync([FromBody] string compose, string path)
-        {
-            var output = await _dockerService.SetMarkdownConfigAsync(compose, path);
+            var output = await _dockerService.GetComposeStatusAsync(cancellationToken);
             return Ok(output);
         }
     }

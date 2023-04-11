@@ -1,20 +1,22 @@
 global using FarmerbotWebUI.Server.Services.Docker;
-
+global using FarmerbotWebUI.Server.Services.Filesystem;
+global using FarmerbotWebUI.Shared;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// In ConfigureServices method of Startup class
+builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IDockerService, DockerService>();
+
+//  In ConfigureServices method of Startup class
 builder.Services.AddScoped<IDockerService>(provider =>
 {
-    var workingDirectory = builder.Configuration.GetValue<string>("WorkingDirectory");
-    return new DockerService(workingDirectory);
+    return new DockerService(builder.Configuration);
 });
 
 var app = builder.Build();
