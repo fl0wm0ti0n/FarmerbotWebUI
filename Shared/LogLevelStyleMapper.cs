@@ -70,6 +70,36 @@ namespace FarmerbotWebUI.Shared
             };
         }
 
+        public static LogLevel BadgeStyleToLogLevel(BadgeStyle badgeStyle)
+        {
+            return badgeStyle switch
+            {
+                BadgeStyle.Light => LogLevel.Trace,
+                BadgeStyle.Secondary => LogLevel.Debug,
+                BadgeStyle.Info => LogLevel.Information,
+                BadgeStyle.Warning => LogLevel.Warning,
+                BadgeStyle.Danger => LogLevel.Error,
+                BadgeStyle.Primary => LogLevel.Critical,
+                BadgeStyle.Success => LogLevel.None,
+                BadgeStyle.Dark => LogLevel.None,
+                _ => LogLevel.None,
+            };
+        }
+
+        public static BadgeStyle LogLevelToBadgeStyle(LogLevel logLevel)
+        {
+            return logLevel switch
+            {
+                LogLevel.Trace => BadgeStyle.Light,
+                LogLevel.Debug => BadgeStyle.Secondary,
+                LogLevel.Information => BadgeStyle.Info,
+                LogLevel.Warning => BadgeStyle.Warning,
+                LogLevel.Error => BadgeStyle.Danger,
+                LogLevel.Critical => BadgeStyle.Primary,
+                _ => BadgeStyle.Info,
+            };
+        }
+
         public static LogLevel RadzenCssToLogLevel(string css)
         {
             return css switch

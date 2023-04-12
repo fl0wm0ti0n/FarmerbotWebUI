@@ -14,20 +14,47 @@ namespace FarmerbotWebUI.Client.Services.Docker
 {
     public class DockerService : IDockerService
     {
-        private int cancelTimeout = 300000;
+        private readonly int cancelTimeout = 300000; // TODO: get from config
         private readonly HttpClient _httpClient;
-        public Dictionary<ActionType, CancellationTokenSource> _cancellationTokens = new Dictionary<ActionType, CancellationTokenSource>();
+        private readonly int _farmerBotStatusInterval = 60; // TODO: get from config
+        public Dictionary<ActionType, CancellationTokenSource> CancellationTokens = new Dictionary<ActionType, CancellationTokenSource>();
+        public FarmerBotStatus ActualFarmerBotStatus { get; private set; }
+        private SemaphoreSlim _statusSemaphore = new SemaphoreSlim(1);
 
         public DockerService(HttpClient httpClient)
         {
-            _httpClient = httpClient; 
+            _httpClient = httpClient;
+            StartStatusInterval();
+        }
+
+        private void StartStatusInterval()
+        {
+            Timer timer = new Timer(async (e) =>
+            {   
+                // Versuche, die SemaphoreSlim zu betreten. Wenn sie bereits gesperrt ist, wird hier gewartet, bis sie freigegeben wird.
+                await _statusSemaphore.WaitAsync();
+                try
+                {
+                    // Hier wird der eigentliche Code ausgeführt, während der Timer pausiert wird
+                    var status = await GetComposeStatusAsync();
+                    if (status.Success && status.Data != null)
+                    {
+                        ActualFarmerBotStatus = status.Data;
+                    }
+                }
+                finally
+                {
+                    // Gib die SemaphoreSlim wieder frei, um den Timer fortzusetzen
+                    _statusSemaphore.Release();
+                }
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_farmerBotStatusInterval));
         }
 
         public Task<bool> CancelOperation(ActionType command)
         {
             try
             {
-                _cancellationTokens.FirstOrDefault(c => c.Key == command).Value.Cancel();
+                CancellationTokens.FirstOrDefault(c => c.Key == command).Value.Cancel();
                 return Task.FromResult(true);
             }
             catch (Exception)
@@ -40,7 +67,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.CancelAfter(cancelTimeout);
-            _cancellationTokens.Add(ActionType.DockerStart, cancellationTokenSource);
+            CancellationTokens.Add(ActionType.DockerStart, cancellationTokenSource);
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<string>>("api/docker/start", cancellationTokenSource.Token);
             return response;
         }
@@ -49,7 +76,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.CancelAfter(cancelTimeout);
-            _cancellationTokens.Add(ActionType.DockerStop, cancellationTokenSource);
+            CancellationTokens.Add(ActionType.DockerStop, cancellationTokenSource);
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<string>>("api/docker/stop", cancellationTokenSource.Token);
             return response;
         }
@@ -73,7 +100,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.CancelAfter(cancelTimeout);
-            _cancellationTokens.Add(ActionType.DockerStatus, cancellationTokenSource);
+            CancellationTokens.Add(ActionType.DockerStatus, cancellationTokenSource);
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>> ("api/docker/status", cancellationTokenSource.Token);
             return response;
         }

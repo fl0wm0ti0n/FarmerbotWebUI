@@ -4,6 +4,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
 {
     public interface IDockerService
     {
+        FarmerBotStatus ActualFarmerBotStatus { get; }
         Task<bool> CancelOperation(ActionType command);
         Task<ServiceResponse<string>> StartComposeAsync();
         Task<ServiceResponse<string>> StopComposeAsync();

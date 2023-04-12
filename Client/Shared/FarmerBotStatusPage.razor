@@ -1,0 +1,30 @@
+﻿@page "/farmerbotstatus"
+@inject IDockerService DockerService
+
+<RadzenStack Orientation="Orientation.Vertical" Class="rz-p-12" Gap="1rem">
+    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
+    @foreach (var farmerBot in DockerService.ActualFarmerBotStatus.Containers)
+    {
+        <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">@farmerBot.Value.ID</RadzenText>
+    }
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
+    @foreach (var farmerBot in DockerService.ActualFarmerBotStatus.Containers)
+    {
+    <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(farmerBot.Key)" Text="@(farmerBot.Value.Status)" />
+    }
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+ 
+    private string GetSeverityClass(EventMessage message)
+    {
+        return "justify-content-center align-items-center rz-shadow-3 " + LogLevelStyleMapper.LogLevelToRadzenCss(message.Severity);
+    }
+
+    private BadgeStyle GetBadgeStyle(bool status)
+    {
+        return status ? BadgeStyle.Success : BadgeStyle.Danger;
+    }
+}

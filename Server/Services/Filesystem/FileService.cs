@@ -22,7 +22,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
         private readonly DockerClient _client;
         public FarmerBotStatus ActualFarmerBotStatus { get; private set; }
 
-        public FileService(IConfiguration configuration)
+        public FileService(IConfiguration configuration, CancellationToken cancellationToken)
         {
             _config = configuration;
             _workingDirectory = _config.GetValue<string>("FarmerBotSettings:WorkingDirectory");
@@ -195,6 +195,31 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
             };
 
             return response;
+        }
+
+        public Task<ServiceResponse<string>> GetRawComposeFileAsync(string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<ServiceResponse<FarmerBotServices>> IFileService.GetComposeFileAsync(string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ServiceResponse<string>> SetComposeFileAsync(FarmerBotServices compose, string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ServiceResponse<string>> GetEnvFileAsync(string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ServiceResponse<string>> SetEnvFileAsync(string env, string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

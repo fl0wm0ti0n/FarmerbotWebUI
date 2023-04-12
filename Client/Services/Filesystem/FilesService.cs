@@ -24,12 +24,22 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
             throw new NotImplementedException();
         }
 
+        public Task<ServiceResponse<string>> GetEnvFileAsync(string path)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<ServiceResponse<string>> GetLocalLogAsync(string path)
         {
             throw new NotImplementedException();
         }
 
         public async Task<ServiceResponse<FarmerBotConfig>> GetMarkdownConfigAsync(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ServiceResponse<string>> GetRawComposeFileAsync(string path)
         {
             throw new NotImplementedException();
         }
@@ -50,6 +60,16 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
             return result;
         }
 
+        public Task<ServiceResponse<string>> SetComposeFileAsync(FarmerBotServices compose, string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ServiceResponse<string>> SetEnvFileAsync(string env, string path)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<ServiceResponse<string>> SetMarkdownConfigAsync(FarmerBotConfig config, string path)
         {
             throw new NotImplementedException();
@@ -64,6 +84,11 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
             var result = JsonConvert.DeserializeObject<ServiceResponse<string>>(responseContent);
             
             return result;
+        }
+
+        Task<ServiceResponse<FarmerBotServices>> IFileService.GetComposeFileAsync(string path)
+        {
+            throw new NotImplementedException();
         }
     }
 }

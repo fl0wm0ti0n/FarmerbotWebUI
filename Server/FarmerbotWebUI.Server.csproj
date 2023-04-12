@@ -18,5 +18,9 @@
     <ProjectReference Include="..\Shared\FarmerbotWebUI.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\Settings\" />
+  </ItemGroup>
+
 
 </Project>

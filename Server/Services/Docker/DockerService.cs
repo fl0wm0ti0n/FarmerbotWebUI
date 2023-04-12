@@ -5,6 +5,7 @@ using FarmerbotWebUI.Shared;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -18,10 +19,12 @@ namespace FarmerbotWebUI.Server.Services.Docker
         private readonly string _threefoldConfigFile;
         private readonly string _farmerBotConfigFile;
         private readonly string _farmerBotLogFile;
+        private readonly int _farmerBotStatusInterval;
         private readonly DockerClientConfiguration _dockerConfig;
         private readonly string _endpoint;
         private readonly DockerClient _client;
         public FarmerBotStatus ActualFarmerBotStatus { get; private set; }
+        public FarmerBotServices FarmerBotServices { get; private set; }
 
         public DockerService(IConfiguration configuration)
         {
@@ -31,6 +34,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
             _threefoldConfigFile = _config.GetValue<string>("FarmerBotSettings:ThreefoldNetworkFile");
             _farmerBotConfigFile = _config.GetValue<string>("FarmerBotSettings:FarmerBotConfigFile");
             _farmerBotLogFile = _config.GetValue<string>("FarmerBotSettings:FarmerBotLogFile");
+            _farmerBotStatusInterval = _config.GetValue<int>("FarmerBotSettings:FarmerBotStatusInterval");
         }
 
         private string GetDockerPipe()
@@ -139,34 +143,39 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
         public async Task<ServiceResponse<FarmerBotStatus>> GetComposeStatusAsync(CancellationToken cancellationToken)
         {
-            var endpoint = GetDockerPipe(); // Endpoint für die Verbindung zur Docker-Engine
-            var dockerConfig = new DockerClientConfiguration(new Uri(_endpoint)); // Konfiguration für die Docker-Clientbibliothek
-            var client = _dockerConfig.CreateClient(); // Docker-Client-Objekt erstellen
+            var endpoint = GetDockerPipe(); // Endpoint for the connection to the Docker-Engine
+            var dockerConfig = new DockerClientConfiguration(new Uri(_endpoint)); // config of the Docker-Clientbibliothek
+            var client = _dockerConfig.CreateClient(); // creation of the Docker-Client-Objekt
 
-            var containerName = "mein-container"; // Name des Containers, dessen Status abgefragt werden soll
-
-            var containers = await _client.Containers.ListContainersAsync(new ContainersListParameters { All = true }); // Alle Container abrufen
-
-            var container = containers.FirstOrDefault(c => c.Names.Contains($"/{containerName}")); // Den Container anhand des Namens finden
-
-            if (container == null)
-            {
-                Console.WriteLine($"Container {containerName} nicht gefunden.");
-            }
-            else
-            {
-                var containerStatus = container.State; // Container-Status abrufen
-
-                Console.WriteLine($"Container-Status von {containerName}: {containerStatus}");
-            }
-
+            List<string> containerNames = new List<string>() { "farmerbot", "redis", "rmbpeer", "grid3_client" };
 
             string error = "";
             string output = "";
             int exitCode = 0;
             try
             {
+                var containers = await _client.Containers.ListContainersAsync(new ContainersListParameters { All = true });
+                foreach (var container in containerNames)
+                {
+                    var containerResponse = containers.FirstOrDefault(c => c.Names.Contains($"/{container}"));
 
+                    if (container == null)
+                    {
+                        exitCode = 1;
+                        error = $"Container {container} not found";
+                    }
+                    else
+                    {
+                        if (true)
+                        {
+                            ActualFarmerBotStatus.Containers.Add(true, containerResponse);
+                        }
+                        else
+                        {
+                            ActualFarmerBotStatus.Containers.Add(false, containerResponse);
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -174,16 +183,14 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 error = ex.Message;
             }
 
-            var result = string.IsNullOrWhiteSpace(output) ? error : output;
-
             if (cancellationToken.IsCancellationRequested)
             {
                 error = "Canceled";
                 exitCode = 1;
             }
-            ServiceResponse<string> response = new ServiceResponse<string>
+            ServiceResponse<FarmerBotStatus> response = new ServiceResponse<FarmerBotStatus>
             {
-                Data = result,
+                Data = ActualFarmerBotStatus,
                 Message = error,
                 Success = exitCode > 0 ? false : true
             };
