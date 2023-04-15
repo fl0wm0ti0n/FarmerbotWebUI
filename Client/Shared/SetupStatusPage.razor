@@ -1,19 +1,28 @@
 ﻿@page "/setupstatus"
 @inject IDockerService DockerService
 
-<RadzenStack Orientation="Orientation.Vertical" Class="rz-p-12" Gap="1rem">
-    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
-        <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">All Containers</RadzenText>
-        <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">Compose File</RadzenText>
-        <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">Config File</RadzenText>
-        <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">.Env-File</RadzenText>
-    </RadzenStack>
-    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
-        <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.Status())" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.Status()))" />
-        <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.ComposeOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.ComposeOk))" />
-        <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.ConfigOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.ConfigOk))" />
-        <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.EnvOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.EnvOk))" />
-    </RadzenStack>
+<RadzenStack Orientation="Orientation.Horizontal" Class="rz-p-12" Gap="1rem">
+    @if (DockerService.ActualFarmerBotStatus != null)
+    {
+        <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
+            <RadzenText>Updated at</RadzenText>
+            <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">All Containers</RadzenText>
+            <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">Compose File</RadzenText>
+            <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">Config File</RadzenText>
+            <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">.Env-File</RadzenText>
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
+            <RadzenText>@DockerService.ActualFarmerBotStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
+            <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.Status())" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.Status()))" />
+            <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.ComposeOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.ComposeOk))" />
+            <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.ConfigOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.ConfigOk))" />
+            <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.EnvOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.EnvOk))" />
+        </RadzenStack>
+    }
+    else
+    {
+        <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
 </RadzenStack>
 
 @code {
@@ -31,5 +40,15 @@
     private string GetSuccessText(bool status)
     {
         return status ? "OK" : "Not OK";
+    }
+
+    protected override void OnInitialized()
+    {
+        DockerService.StatusChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        DockerService.StatusChanged -= StateHasChanged;
     }
 }

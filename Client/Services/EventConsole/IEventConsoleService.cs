@@ -3,7 +3,6 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
 {
     public interface IEventConsoleService
     {
-        public event Action NewMessage;
         public event Action AddedMessage;
         public event Action UpdatedMessage;
         public event Action EventConsoleChanged;
@@ -12,11 +11,13 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
         public List<EventMessage> Messages { get; set; }
         public List<EventMessage> GetMessages();
         public EventMessage? GetMessage(int id);
-        public int LogMessage(string message, LogLevel level, string title, MessageSource source, MessageResult result, ActionType action, bool showPrograssBar);
-        public void UpdateMessage(DateTime? time, int messageId, string? message, LogLevel? level, string? title, MessageSource? source, MessageResult? result, ActionType action, bool? showPrograssBar);
-        public void AddMessage(EventMessage message);
-        public string? Transform(bool toggle);
-        public void ClearMessages();
+        public EventSourceActionId AddMessage(EventSourceActionId id, string title, string message, bool showPrograssBar, bool done, LogLevel level, EventResult result, EventTyp typ);
+        public EventSourceActionId AddMessage(EventMessage message);
+        public void UpdateMessage(EventSourceActionId id, string? title, string? message, bool? showPrograssBar, bool? done, LogLevel? level, EventResult? result, EventTyp? typ);
+        public void UpdateMessage(EventMessage message);
         public void RemoveMessage(int id);
+        public void RemoveMessage(EventSourceActionId id);
+        public void ClearMessages();
+        public string? Transform(bool toggle);
     }
 }

@@ -36,12 +36,14 @@
     </RadzenRow>
 </RadzenCard>
 <RadzenCard Style="height: 100%; width: 100%; padding:unset; padding-right: 2px; padding-left: 2px; overflow: auto;" class="rz-border-radius-0">
-    @foreach (var message in EventConsoleService.Messages)
+
+    @for (int i = EventConsoleService.Messages.Count - 1; i >= 0; i--)
     {
+        var message = EventConsoleService.Messages[i];
         <RadzenRow class="@GetSeverityClass(message)" Style="margin-bottom: 2px; height: 25px">
             @if (message.ShowPrograssBar)
             {
-                <RadzenColumn Size="1" >
+                <RadzenColumn Size="1">
                     <RadzenText onclick="@(() => OpenEventDialog(message))" Style="padding-top: 2px; padding-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300" class="rz-border-color-base-700">@message.Title</RadzenText>
                 </RadzenColumn>
                 <RadzenColumn Size="10" class="align-content-center justify-content-center">
@@ -53,30 +55,35 @@
             }
             else
             {
-                <RadzenColumn Size="1" >
-                    <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"), args))" Style="padding-top: 2px; padding-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
+                <RadzenColumn Size="1">
+                    <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss"), args))" Style="padding-top: 2px; padding-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="1" >
+                <RadzenColumn Size="1">
                     <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Id.ToString(), args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Id.ToString()</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="1" >
+                <RadzenColumn Size="1">
                     <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Severity.ToString(), args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Severity.ToString()</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="1" >
+                <RadzenColumn Size="1">
                     <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Source.ToString(), args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Source.ToString()</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="1" >
+                <RadzenColumn Size="1">
                     <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Title, args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Title</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="1" >
+                <RadzenColumn Size="1">
                     <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Result.ToString(), args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Result.ToString()</RadzenText>
                 </RadzenColumn>
-                <RadzenColumn Size="6" >
+                <RadzenColumn Size="6">
                     <RadzenText onclick="@(() => OpenEventDialog(message))" MouseEnter="@(args => ShowTooltip(message.Message, args))" Style="padding-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@message.Message</RadzenText>
                 </RadzenColumn>
             }
         </RadzenRow>
     }
+
+@*    @foreach (var message in EventConsoleService.Messages)
+    {
+
+    }*@
 </RadzenCard>
 
 @code {

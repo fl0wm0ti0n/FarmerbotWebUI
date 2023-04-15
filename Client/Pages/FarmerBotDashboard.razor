@@ -19,12 +19,12 @@
                             <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.NoWrap">
                                 <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(StartDockerComposeAsync) BusyText="Starting ..." IsBusy=@busy Text="Start Farmerbot" ButtonStyle="ButtonStyle.Success" Disabled="@(!startButton)" />
                                 <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(StopDockerComposeAsync) BusyText="Stopping ..." IsBusy=@busy Text="Stop Farmerbot" ButtonStyle="ButtonStyle.Danger" Disabled="@(!stopButton)" />
+                                <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(UpdateDockerComposeAsync) BusyText="Updating ..." IsBusy=@busy Text="Update Status" ButtonStyle="ButtonStyle.Secondary" />
                             </RadzenStack>
                             <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.NoWrap">
-                            <RadzenCard Style="width: 300px; height: 89px;" class="rz-border-radius-0">
-                                    <RadzenText> //TODO Status info </RadzenText>   
-                                </RadzenCard>
+                                <RadzenCard Style="width: 300px; height: 89px;" class="rz-border-radius-0">
                                 <FarmerBotStatusPage />
+                                </RadzenCard>
                             </RadzenStack>
                     </RadzenStack>
                 </RadzenCard>
@@ -51,21 +51,86 @@
 </RadzenSplitter>
 
 @code {
-    private bool startButton = true;
-    private bool stopButton = true;
+    private ServiceResponse<FarmerBotStatus>? Response { get; set; } = new ServiceResponse<FarmerBotStatus>();
+    private bool startButton = false;
+    private bool stopButton = false;
     private bool busy = false;
-    private Dictionary<int, DashboardAction> actionIds = new Dictionary<int, DashboardAction>();
-    enum DashboardAction
-    {
-        Start,
-        Stop
+
+    protected override void OnAfterRender(bool firstRender){
+        if (DockerService.ActualFarmerBotStatus != null)
+        {
+            if (!DockerService.ActualFarmerBotStatus.Status())
+            {
+                startButton = true;
+            }
+            else
+            {
+                stopButton = true;
+            }
+        }
     }
 
-    private ServiceResponse<string>? Response { get; set; } = new ServiceResponse<string>();
+    protected override void OnInitialized()
+    {
+        if (DockerService.ActualFarmerBotStatus != null)
+        {
+            if (!DockerService.ActualFarmerBotStatus.Status())
+            {
+                startButton = true;
+            }
+            else
+            {
+                stopButton = true;
+            }
+        }
+    }
+
+    private async Task UpdateDockerComposeAsync()
+    {
+        actionIds.Add(EventConsoleService.LogMessage("Trying to Update Farmerbot status...", LogLevel.Information, "Updating Status...", EventTyp.UserAction, EventResult.Valueless, ActionType.DockerStatus, true), DashboardActions.Status);
+        busy = true;
+        StateHasChanged();
+
+        Response = await DockerService.GetComposeStatusAsync();
+        if (Response.Success)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"{Response.Message}", Detail = $"{EventConsoleService.Transform(Response.Success)}", Duration = 4000, Click = NotificationClick, CloseOnClick = true, Payload = DateTime.Now });
+            UpdateLog(DashboardActions.Status, LogLevel.Information, "Updating Status", EventTyp.UserAction, EventResult.Successfully, ActionType.DockerStatus, false);
+            busy = false;
+            //if (DockerService.ActualFarmerBotStatus != null)
+            //{
+            //    if (!DockerService.ActualFarmerBotStatus.Status())
+            //    {
+            //        startButton = true;
+            //    }
+            //    else
+            //    {
+            //        stopButton = true;
+            //    }
+            //}
+        }
+        else
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = $"{Response.Message}", Detail = $"{EventConsoleService.Transform(Response.Success)}", Duration = 4000, Click = NotificationClick, CloseOnClick = true, Payload = DateTime.Now });
+            UpdateLog(DashboardActions.Status, LogLevel.Error, "Updating Status", EventTyp.UserAction, EventResult.Unsuccessfully, ActionType.DockerStatus, false);
+            busy = false;
+            //if (DockerService.ActualFarmerBotStatus != null)
+            //{
+            //    if (!DockerService.ActualFarmerBotStatus.Status())
+            //    {
+            //        startButton = true;
+            //    }
+            //    else
+            //    {
+            //        stopButton = true;
+            //    }
+            //}
+        }
+    }
 
     private async Task StartDockerComposeAsync()
     {
-        actionIds.Add(EventConsoleService.LogMessage("Trying to start Farmerbot via docker compose...", LogLevel.Information, "Starting FarmerBot...", MessageSource.UserAction, MessageResult.Valueless, ActionType.DockerStart, true), DashboardAction.Start);
+        actionIds.Add(EventConsoleService.LogMessage("Trying to start Farmerbot via docker compose...", LogLevel.Information, "Starting FarmerBot...", EventTyp.UserAction, EventResult.Valueless, ActionType.DockerStart, true), DashboardActions.Start);
         busy = true;
         StateHasChanged();
 
@@ -73,7 +138,7 @@
         if (Response.Success)
         {
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"{Response.Message}", Detail = $"{EventConsoleService.Transform(Response.Success)}", Duration = 4000, Click = NotificationClick, CloseOnClick = true, Payload = DateTime.Now });
-            UpdateLog(DashboardAction.Start, LogLevel.Information, "Starting FarmerBot", MessageSource.UserAction, MessageResult.Successfully, ActionType.DockerStart, false);
+            UpdateLog(DashboardActions.Start, LogLevel.Information, "Starting FarmerBot", EventTyp.UserAction, EventResult.Successfully, ActionType.DockerStart, false);
             busy = false;
             stopButton = true;
             startButton = false;
@@ -81,7 +146,7 @@
         else
         {
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = $"{Response.Message}", Detail = $"{EventConsoleService.Transform(Response.Success)}", Duration = 4000, Click = NotificationClick, CloseOnClick = true, Payload = DateTime.Now });
-            UpdateLog(DashboardAction.Start, LogLevel.Error, "Starting FarmerBot", MessageSource.UserAction, MessageResult.Unsuccessfully, ActionType.DockerStart, false);
+            UpdateLog(DashboardActions.Start, LogLevel.Error, "Starting FarmerBot", EventTyp.UserAction, EventResult.Unsuccessfully, ActionType.DockerStart, false);
             busy = false;
             stopButton = true;
             startButton = true;
@@ -90,7 +155,7 @@
 
     private async Task StopDockerComposeAsync()
     {
-        actionIds.Add(EventConsoleService.LogMessage("Trying to start Farmerbot via docker compose...", LogLevel.Information, "Stopping FarmerBot...", MessageSource.UserAction, MessageResult.Valueless, ActionType.DockerStop, true), DashboardAction.Stop);
+        actionIds.Add(EventConsoleService.LogMessage("Trying to start Farmerbot via docker compose...", LogLevel.Information, "Stopping FarmerBot...", EventTyp.UserAction, EventResult.Valueless, ActionType.DockerStop, true), DashboardActions.Stop);
         busy = true;
         StateHasChanged();
 
@@ -98,7 +163,7 @@
         if (Response.Success)
         {
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"{Response.Message}", Detail = $"{EventConsoleService.Transform(Response.Success)}", Duration = 4000, Click = NotificationClick, CloseOnClick = true, Payload = DateTime.Now });
-            UpdateLog(DashboardAction.Stop, LogLevel.Information, "Stopping FarmerBot", MessageSource.UserAction, MessageResult.Successfully, ActionType.DockerStop, false);
+            UpdateLog(DashboardActions.Stop, LogLevel.Information, "Stopping FarmerBot", EventTyp.UserAction, EventResult.Successfully, ActionType.DockerStop, false);
             busy = false;
             stopButton = false;
             startButton = true;
@@ -106,20 +171,10 @@
         else
         {
             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = $"{Response.Message}", Detail = $"{EventConsoleService.Transform(Response.Success)}", Duration = 4000, Click = NotificationClick, CloseOnClick = true, Payload = DateTime.Now });
-            UpdateLog(DashboardAction.Stop, LogLevel.Error, "Stopping FarmerBot", MessageSource.UserAction, MessageResult.Unsuccessfully, ActionType.DockerStop, false);
+            UpdateLog(DashboardActions.Stop, LogLevel.Error, "Stopping FarmerBot", EventTyp.UserAction, EventResult.Unsuccessfully, ActionType.DockerStop, false);
             busy = false;
             stopButton = true;
             startButton = true;
-        }
-    }
-
-    private void UpdateLog(DashboardAction action, LogLevel level, string title, MessageSource source, MessageResult result, ActionType actionType, bool showBar)
-    {
-        var key = actionIds.FirstOrDefault(x => x.Value == action).Key;
-        if (key != 0)
-        {
-            actionIds.Remove(key);
-            EventConsoleService.UpdateMessage(DateTime.Now, key, $"{Response.Message}", level, title, source, result, actionType, showBar);
         }
     }
 
@@ -130,7 +185,7 @@
 
     void NotificationClick(NotificationMessage message)
     {
-        // lets see...
+        //lets see ...
     }
 
     void OnCollapse(RadzenSplitterEventArgs args)

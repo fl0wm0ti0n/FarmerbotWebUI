@@ -6,6 +6,7 @@
 @inject ContextMenuService ContextMenuService
 @inject NotificationService NotificationService
 @inject EventConsole console
+@inject IDockerService DockerService
 
 <RadzenDialog />
 <RadzenNotification />
@@ -81,6 +82,7 @@
 
 
 @code {
+    private ServiceResponse<FarmerBotStatus>? Response { get; set; } = new ServiceResponse<FarmerBotStatus>();
     private bool sidebarExpanded = true;
     private bool DialogAlreadyCreated = false;
     // Settings dialog vars
@@ -88,6 +90,19 @@
     private bool CloseDialogOnOverlayClick = false;
     private bool ShowMask = true;
     private Task<Settings>? dialogResult = null;
+
+    override protected async void OnInitialized()
+    {
+        if (DockerService.ActualFarmerBotStatus == null)
+        {
+            Response = await DockerService.GetComposeStatusAsync();
+            // TODO: Error handling 
+        }
+        else
+        {
+            // TODO: Error handling if container false
+        }
+    }
 
     private void OpenUrlInNewTab(string url)
     {

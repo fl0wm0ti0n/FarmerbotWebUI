@@ -17,14 +17,14 @@ namespace FarmerbotWebUI.Server.Controllers
         }
 
         [HttpGet("start")]
-        public async Task<ActionResult<ServiceResponse<string>>> StartComposeAsync(CancellationToken cancellationToken)
+        public async Task<ActionResult<ServiceResponse<FarmerBotStatus>>> StartComposeAsync(CancellationToken cancellationToken)
         {
             var output = await _dockerService.StartComposeAsync(cancellationToken);
             return Ok(output);
         }
 
         [HttpGet("stop")]
-        public async Task<ActionResult<ServiceResponse<string>>> StopComposeAsync(CancellationToken cancellationToken)
+        public async Task<ActionResult<ServiceResponse<FarmerBotStatus>>> StopComposeAsync(CancellationToken cancellationToken)
         {
             var output = await _dockerService.StopComposeAsync(cancellationToken);
             return Ok(output);

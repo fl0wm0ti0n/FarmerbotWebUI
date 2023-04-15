@@ -1,19 +1,28 @@
 ﻿@page "/farmerbotstatus"
 @inject IDockerService DockerService
 
-<RadzenStack Orientation="Orientation.Vertical" Class="rz-p-12" Gap="1rem">
-    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
-    @foreach (var farmerBot in DockerService.ActualFarmerBotStatus.Containers)
+<RadzenStack Orientation="Orientation.Horizontal" Class="rz-p-8" Gap="1rem">
+    @if (DockerService.ActualFarmerBotStatus != null)
     {
-        <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">@farmerBot.Value.ID</RadzenText>
+        <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
+            <RadzenText>Updated at</RadzenText>
+            @foreach (var farmerBot in DockerService.ActualFarmerBotStatus.Containers)
+            {
+                <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">@(farmerBot.Name) </RadzenText>
+            }
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
+            <RadzenText>@DockerService.ActualFarmerBotStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
+            @foreach (var farmerBot in DockerService.ActualFarmerBotStatus.Containers)
+            {
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(farmerBot.Running)" Text="@(farmerBot.Name)" />
+            }
+        </RadzenStack>
     }
-    </RadzenStack>
-    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
-    @foreach (var farmerBot in DockerService.ActualFarmerBotStatus.Containers)
+    else
     {
-    <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(farmerBot.Key)" Text="@(farmerBot.Value.Status)" />
+        <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
     }
-    </RadzenStack>
 </RadzenStack>
 
 @code {
@@ -26,5 +35,15 @@
     private BadgeStyle GetBadgeStyle(bool status)
     {
         return status ? BadgeStyle.Success : BadgeStyle.Danger;
+    }
+
+    protected override void OnInitialized()
+    {
+        DockerService.StatusChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        DockerService.StatusChanged -= StateHasChanged;
     }
 }

@@ -9,24 +9,26 @@ namespace FarmerbotWebUI.Shared
 {
     public class EventMessage
     {
-        public int Id { get; set; }
-        public DateTime Timestamp { get; set; }
-        public LogLevel Severity { get; set; } = LogLevel.Information;
-        public MessageSource Source { get; set; } = MessageSource.Default;
+        public EventSourceActionId Id { get; set; }
+        public DateTime StartTime { get; set; } = DateTime.UtcNow;
+        public DateTime? EndTime { get; set; } = null;
         public string Title { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
-        public MessageResult Result { get; set; } = MessageResult.Unknown;
         public bool ShowPrograssBar { get; set; } = false;
-        public ActionType Action { get; set; } = ActionType.Default;
+        public bool Done { get; set; } = false;
+        public bool ShowInGui { get; set; } = false;
+        public LogLevel Severity { get; set; } = LogLevel.Information;
+        public EventResult Result { get; set; } = EventResult.Unknown;
+        public EventTyp Typ { get; set; } = EventTyp.Default;
 
         public bool GetResultAsBool()
         {
             return Result switch
             {
-                MessageResult.Successfully => true,
-                MessageResult.Unsuccessfully => false,
-                MessageResult.Valueless => true,
-                MessageResult.Unknown => true,
+                EventResult.Successfully => true,
+                EventResult.Unsuccessfully => false,
+                EventResult.Valueless => true,
+                EventResult.Unknown => true,
                 _ => true,
             };
         }
@@ -36,25 +38,26 @@ namespace FarmerbotWebUI.Shared
             switch (result)
             {
                 case true:
-                    Result = MessageResult.Successfully;
+                    Result = EventResult.Successfully;
                     break;
                 case false:
-                    Result = MessageResult.Unsuccessfully;
+                    Result = EventResult.Unsuccessfully;
                     break;
             }
         }
     }
-
-public enum MessageSource
+    public enum EventTyp
     {
         Default,
         UserAction,
-        SystemEvent,
+        ClientEvent,
+        ServerEvent,
         DockerEvent,
         FarmerbotEvent,
         Unknown,
     }
-    public enum MessageResult
+
+    public enum EventResult
     {
         Successfully,
         Unsuccessfully,

@@ -6,8 +6,8 @@ namespace FarmerbotWebUI.Server.Services.Docker
     {
         FarmerBotStatus ActualFarmerBotStatus { get; }
         FarmerBotServices FarmerBotServices { get; }
-        Task<ServiceResponse<string>> StartComposeAsync(CancellationToken cancellationToken);
-        Task<ServiceResponse<string>> StopComposeAsync(CancellationToken cancellationToken);
+        Task<ServiceResponse<FarmerBotStatus>> StartComposeAsync(CancellationToken cancellationToken);
+        Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(CancellationToken cancellationToken);
         Task<ServiceResponse<string>> GetComposeProcessesAsync(CancellationToken cancellationToken);
         Task<ServiceResponse<string>> GetComposeListAsync(CancellationToken cancellationToken);
         Task<ServiceResponse<string>> GetComposeLogsAsync(CancellationToken cancellationToken);

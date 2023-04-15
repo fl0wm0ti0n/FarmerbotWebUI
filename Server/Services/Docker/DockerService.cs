@@ -20,11 +20,9 @@ namespace FarmerbotWebUI.Server.Services.Docker
         private readonly string _farmerBotConfigFile;
         private readonly string _farmerBotLogFile;
         private readonly int _farmerBotStatusInterval;
-        private readonly DockerClientConfiguration _dockerConfig;
-        private readonly string _endpoint;
         private readonly DockerClient _client;
-        public FarmerBotStatus ActualFarmerBotStatus { get; private set; }
-        public FarmerBotServices FarmerBotServices { get; private set; }
+        public FarmerBotStatus ActualFarmerBotStatus { get; private set; } = new FarmerBotStatus();
+        public FarmerBotServices FarmerBotServices { get; private set; } = new FarmerBotServices();
 
         public DockerService(IConfiguration configuration)
         {
@@ -53,7 +51,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
             }
         }
 
-        public async Task<ServiceResponse<string>> StartComposeAsync(CancellationToken cancellationToken)
+        public async Task<ServiceResponse<FarmerBotStatus>> StartComposeAsync(CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", "compose up -d")
             {
@@ -88,16 +86,16 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 exitCode = 1;
             }
 
-            ServiceResponse<string> response = new ServiceResponse<string>
+            ServiceResponse<FarmerBotStatus> response = new ServiceResponse<FarmerBotStatus>
             {
-                Data = result,
+                Data = GetComposeStatusAsync(cancellationToken).Result.Data,
                 Message = error,
                 Success = exitCode > 0 ? false : true
             };
             return response;
         }
 
-        public async Task<ServiceResponse<string>> StopComposeAsync(CancellationToken cancellationToken)
+        public async Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", "compose down")
             {
@@ -117,6 +115,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 output = await process.StandardOutput.ReadToEndAsync();
                 error = await process.StandardError.ReadToEndAsync();
                 exitCode = process.ExitCode;
+
             }
             catch (Exception ex)
             {
@@ -132,9 +131,9 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 exitCode = 1;
             }
 
-            ServiceResponse<string> response = new ServiceResponse<string>
+            ServiceResponse<FarmerBotStatus> response = new ServiceResponse<FarmerBotStatus>
             {
-                Data = result,
+                Data = GetComposeStatusAsync(cancellationToken).Result.Data,
                 Message = error,
                 Success = exitCode > 0 ? false : true
             };
@@ -143,37 +142,73 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
         public async Task<ServiceResponse<FarmerBotStatus>> GetComposeStatusAsync(CancellationToken cancellationToken)
         {
-            var endpoint = GetDockerPipe(); // Endpoint for the connection to the Docker-Engine
-            var dockerConfig = new DockerClientConfiguration(new Uri(_endpoint)); // config of the Docker-Clientbibliothek
-            var client = _dockerConfig.CreateClient(); // creation of the Docker-Client-Objekt
-
-            List<string> containerNames = new List<string>() { "farmerbot", "redis", "rmbpeer", "grid3_client" };
-
             string error = "";
             string output = "";
             int exitCode = 0;
+            DockerClient? client = null;
+
             try
             {
-                var containers = await _client.Containers.ListContainersAsync(new ContainersListParameters { All = true });
+                var endpoint = GetDockerPipe(); // Endpoint for the connection to the Docker-Engine
+                var dockerConfig = new DockerClientConfiguration(new Uri(endpoint)); // config of the Docker-Clientbibliothek
+                client = dockerConfig.CreateClient(); // creation of the Docker-Client-Objekt
+            }
+            catch (Exception ex)
+            {
+                exitCode = 1;
+                error = ex.Message;
+            }
+
+            List<string> containerNames = new List<string>() { "farmerbot", "redis", "rmbpeer", "grid3_client" };
+
+            string fullPath = Path.GetFullPath(_workingDirectory).TrimEnd(Path.DirectorySeparatorChar);
+            string lastDir = fullPath.Split(Path.DirectorySeparatorChar).Last().ToLower();
+
+            try
+            {
+                var containers = await client.Containers.ListContainersAsync(new ContainersListParameters { All = true }, cancellationToken);
                 foreach (var container in containerNames)
                 {
-                    var containerResponse = containers.FirstOrDefault(c => c.Names.Contains($"/{container}"));
+                    var containerResponse = containers.FirstOrDefault(c => c.Names.Contains($"/{lastDir}-{container}-1"));
 
-                    if (container == null)
+                    if (containerResponse == null)
                     {
-                        exitCode = 1;
+                        ActualFarmerBotStatus.Containers.Add(new ContainerListObject()
+                        {
+                            Container = containerResponse,
+                            Name = container,
+                            NoContainer = true,
+                            Running = false
+                        });
+                        exitCode = 0;
                         error = $"Container {container} not found";
                     }
                     else
                     {
-                        if (true)
+                        if (containerResponse.State == "running")
                         {
-                            ActualFarmerBotStatus.Containers.Add(true, containerResponse);
+                            ActualFarmerBotStatus.Containers.Add(new ContainerListObject()
+                            {
+                                Container = containerResponse,
+                                Name = container,
+                                NoContainer = false,
+                                Running = true,
+                            });
+
+                            exitCode = 0;
                         }
                         else
                         {
-                            ActualFarmerBotStatus.Containers.Add(false, containerResponse);
+                            ActualFarmerBotStatus.Containers.Add(new ContainerListObject()
+                            {
+                                Container = containerResponse,
+                                Name = container,
+                                NoContainer = false,
+                                Running = false
+                            });
+                            exitCode = 0;
                         }
+                        error = "Sucessfully updated FarmerBot status";
                     }
                 }
             }
@@ -182,6 +217,14 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 exitCode = 1;
                 error = ex.Message;
             }
+
+            if (ActualFarmerBotStatus.Status())
+            {
+                ActualFarmerBotStatus.ComposeOk = true;
+                ActualFarmerBotStatus.EnvOk = true;
+                ActualFarmerBotStatus.ConfigOk = true;
+            }
+            ActualFarmerBotStatus.LastUpdate = DateTime.UtcNow;
 
             if (cancellationToken.IsCancellationRequested)
             {
@@ -194,7 +237,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 Message = error,
                 Success = exitCode > 0 ? false : true
             };
-            throw new NotImplementedException();
+            return response;
         }
 
         public async Task<ServiceResponse<string>> GetComposeListAsync(CancellationToken cancellationToken)
