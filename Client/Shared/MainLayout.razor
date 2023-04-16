@@ -95,7 +95,8 @@
     {
         if (DockerService.ActualFarmerBotStatus == null)
         {
-            Response = await DockerService.GetComposeStatusAsync();
+            EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.FarmerBotStatus, Source = EventSource.MainLayout, Typ = EventTyp.ClientJob };
+            Response = await DockerService.GetComposeStatusAsync(eventSourceActionId);
             // TODO: Error handling 
         }
         else

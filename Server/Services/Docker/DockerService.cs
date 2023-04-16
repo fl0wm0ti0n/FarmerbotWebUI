@@ -71,6 +71,11 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 output = await process.StandardOutput.ReadToEndAsync();
                 error = await process.StandardError.ReadToEndAsync();
                 exitCode = process.ExitCode;
+                if (output == "" && error == "")
+                {
+                    exitCode = 1;
+                    error = "No exitcode, maybe compose is already down";
+                }
             }
             catch (Exception ex)
             {
@@ -115,6 +120,11 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 output = await process.StandardOutput.ReadToEndAsync();
                 error = await process.StandardError.ReadToEndAsync();
                 exitCode = process.ExitCode;
+                if (output == "" && error == "")
+                {
+                    exitCode = 1;
+                    error = "No exitcode, maybe compose is already down";
+                }
 
             }
             catch (Exception ex)
@@ -180,8 +190,8 @@ namespace FarmerbotWebUI.Server.Services.Docker
                             NoContainer = true,
                             Running = false
                         });
-                        exitCode = 0;
-                        error = $"Container {container} not found";
+                        exitCode = 1;
+                        error += $"Container {container} not found.\n";
                     }
                     else
                     {

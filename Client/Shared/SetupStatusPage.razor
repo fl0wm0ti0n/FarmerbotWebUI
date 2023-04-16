@@ -1,30 +1,31 @@
 ﻿@page "/setupstatus"
 @inject IDockerService DockerService
 
-<RadzenStack Orientation="Orientation.Horizontal" Class="rz-p-12" Gap="1rem">
-    @if (DockerService.ActualFarmerBotStatus != null)
-    {
-        <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
-            <RadzenText>Updated at</RadzenText>
-            <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">All Containers</RadzenText>
-            <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">Compose File</RadzenText>
-            <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">Config File</RadzenText>
-            <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">.Env-File</RadzenText>
-        </RadzenStack>
-        <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="2rem">
-            <RadzenText>@DockerService.ActualFarmerBotStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
-            <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.Status())" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.Status()))" />
-            <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.ComposeOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.ComposeOk))" />
-            <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.ConfigOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.ConfigOk))" />
-            <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.EnvOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.EnvOk))" />
-        </RadzenStack>
-    }
-    else
-    {
-        <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
-    }
-</RadzenStack>
-
+<RadzenCard Style="width: 310px; height: 200px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
+    <RadzenStack Orientation="Orientation.Horizontal" Class="rz-p-2" Gap="1rem">
+        @if (DockerService.ActualFarmerBotStatus != null)
+        {
+            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.Center" Gap="5px">
+                <RadzenText Style="font-weight:500; width: 90px">Updated at</RadzenText>
+                <RadzenText Style="font-weight:500; width: 90px">All Containers</RadzenText>
+                <RadzenText Style="font-weight:500; width: 90px">Compose File</RadzenText>
+                <RadzenText Style="font-weight:500; width: 90px">Config File</RadzenText>
+                <RadzenText Style="font-weight:500; width: 90px">.Env-File</RadzenText>
+            </RadzenStack>
+            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.Center" Gap="5px">
+                <RadzenText Style="font-weight:500; width: 140px">@DockerService.ActualFarmerBotStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.Status())" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.Status()))" />
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.ComposeOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.ComposeOk))" />
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.ConfigOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.ConfigOk))" />
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.EnvOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.EnvOk))" />
+            </RadzenStack>
+        }
+        else
+        {
+            <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        }
+    </RadzenStack>
+</RadzenCard>
 @code {
 
     private string GetSeverityClass(EventMessage message)

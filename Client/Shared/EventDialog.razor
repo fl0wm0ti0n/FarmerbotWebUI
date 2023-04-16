@@ -5,7 +5,10 @@
     <RadzenRow Style="border-bottom:solid; border-bottom-width:thin; border-bottom-color: rgb(69, 86, 94)">
         <RadzenColumn Size="3" Style="width: 50px">
             <RadzenRow Style="padding-left: 8px; border-right:solid; border-right-width:thin; border-right-color: rgb(69, 86, 94)">
-                <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">Timestamp</RadzenText>
+                <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">Start Time</RadzenText>
+            </RadzenRow>
+            <RadzenRow Style="padding-left: 8px; border-right:solid; border-right-width:thin; border-right-color: rgb(69, 86, 94)">
+                <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">End Time</RadzenText>
             </RadzenRow>
             <RadzenRow Style="padding-left: 8px; border-right:solid; border-right-width:thin; border-right-color: rgb(69, 86, 94)">
                 <RadzenText Style="font-weight:500; color: rgb(63, 203, 190)">Message Id</RadzenText>
@@ -25,16 +28,19 @@
         </RadzenColumn>
         <RadzenColumn Size="9" >
             <RadzenRow>
-                <RadzenText Style="padding-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@Message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
+                <RadzenText Style="padding-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@Message.StartTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
             </RadzenRow>
             <RadzenRow>
-                <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:100">@Message.Id.ToString()</RadzenText>
+                <RadzenText Style="padding-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300">@((Message.EndTime != null) ? Message.EndTime.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") : "")</RadzenText>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:100">@Message.Id.Id.ToString()</RadzenText>
             </RadzenRow>
             <RadzenRow>
                 <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:100">@Message.Severity.ToString()</RadzenText>
             </RadzenRow>
             <RadzenRow>
-                <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:100">@Message.Source.ToString()</RadzenText>
+                <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:100">@Message.Id.Source.ToString()</RadzenText>
             </RadzenRow>
             <RadzenRow>
                 <RadzenText Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:100">@Message.Title</RadzenText>
@@ -44,7 +50,7 @@
             </RadzenRow>
         </RadzenColumn>
         <RadzenColumn Size="1">
-            <RadzenButton Style="width: 50px; height: 20px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => DockerService.CancelOperation(Message.Action)) Text="Cancel" ButtonStyle="ButtonStyle.Danger" Disabled="@(GetResultState())" />
+            <RadzenButton Style="width: 50px; height: 20px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => DockerService.CancelOperation(Message.Id.Action)) Text="Cancel" ButtonStyle="ButtonStyle.Danger" Disabled="@(GetResultState())" />
         </RadzenColumn>
     </RadzenRow>
     <RadzenText Style="margin-top: 5px;">Message</RadzenText>
@@ -56,6 +62,6 @@
 
     private bool GetResultState()
     {
-        return Message.Result != MessageResult.Unknown ? true : false;
+        return Message.Result != EventResult.Unknown ? true : false;
     }
 }

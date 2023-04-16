@@ -127,6 +127,34 @@ namespace FarmerbotWebUI.Shared
                 _ => "rz-background-color-white",
             };
         }
+
+        public static LogLevel NotificationSeverityToLogLevel(NotificationSeverity badgeStyle)
+        {
+            return badgeStyle switch
+            {
+                NotificationSeverity.Success => LogLevel.Trace,
+                NotificationSeverity.Info => LogLevel.Information,
+                NotificationSeverity.Warning => LogLevel.Warning,
+                NotificationSeverity.Error => LogLevel.Error,
+                _ => LogLevel.None,
+            };
+        }
+
+        public static NotificationSeverity LogLevelToNotificationSeverity(LogLevel logLevel)
+        {
+            return logLevel switch
+            {
+                LogLevel.Trace => NotificationSeverity.Success,
+                LogLevel.Information => NotificationSeverity.Info,
+                LogLevel.Warning => NotificationSeverity.Warning,
+                LogLevel.Error => NotificationSeverity.Error,
+                LogLevel.Critical => NotificationSeverity.Error,
+                LogLevel.Debug => NotificationSeverity.Info,
+                LogLevel.None => NotificationSeverity.Info,
+                _ => NotificationSeverity.Info,
+            };
+        }
+
     }
 
     public enum Style

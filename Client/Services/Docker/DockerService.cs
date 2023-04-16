@@ -1,4 +1,5 @@
-﻿using FarmerbotWebUI.Client.Shared;
+﻿using Docker.DotNet.Models;
+using FarmerbotWebUI.Client.Shared;
 using FarmerbotWebUI.Shared;
 using Microsoft.AspNetCore.Components;
 using Newtonsoft.Json;
@@ -25,17 +26,10 @@ namespace FarmerbotWebUI.Client.Services.Docker
         private bool _lockInterval = false;
         private List<EventSourceActionId> _eventSourceActionIds = new List<EventSourceActionId>();
 
-        public Dictionary<ActionType, CancellationTokenSource> CancellationTokens = new Dictionary<ActionType, CancellationTokenSource>();
+        public Dictionary<EventAction, CancellationTokenSource> CancellationTokens = new Dictionary<EventAction, CancellationTokenSource>();
         public event Action StatusChanged = () => { };
-
-        enum DockerServiceActions
-        {
-            Start,
-            Stop,
-            Status,
-        }
-
         public FarmerBotStatus? ActualFarmerBotStatus { get; private set; } = null;
+
         public DockerService(HttpClient httpClient, IEventConsoleService eventConsole, NotificationService notificationService)
         {
             _httpClient = httpClient;
@@ -53,15 +47,8 @@ namespace FarmerbotWebUI.Client.Services.Docker
                     await _statusSemaphore.WaitAsync();
                     try
                     {
-                        EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.Status, Source = EventSource.DockerService };
-                        _eventSourceActionIds.Add(eventSourceActionId);
+                        EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.FarmerBotStatus, Source = EventSource.DockerService, Typ = EventTyp.ClientJob};
                         var response = await GetComposeStatusAsync(eventSourceActionId);
-                        if (!response.Success && response.Data == null)
-                        {
-                            ActualFarmerBotStatus = null;
-                            var message = $"Error getting FarmerBot status: {response.Message}. The Docker-Engine may not reachable.";
-                            _eventConsole.AddMessage(eventSourceActionId, message, LogLevel.Error, "Getting FarmerBot status...", MessageSource.SystemEvent, MessageResult.Unsuccessfully, ActionType.DockerStatus, false);
-                        }
                     }
                     finally
                     {
@@ -71,7 +58,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
             }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_farmerBotStatusInterval));
         }
 
-        public Task<bool> CancelOperation(ActionType command)
+        public Task<bool> CancelOperation(EventAction command)
         {
             try
             {
@@ -86,31 +73,75 @@ namespace FarmerbotWebUI.Client.Services.Docker
 
         public async Task<ServiceResponse<FarmerBotStatus>> StartComposeAsync(EventSourceActionId id)
         {
+            var title = "Starting FarmerBot";
+            var message = $"Starting FarmerBot...";
+            var GuiAndProgress = id.Typ == EventTyp.UserAction ? true : false;
+            id = _eventConsole.AddMessage(id, title, message, GuiAndProgress, false, GuiAndProgress, LogLevel.Information, EventResult.Valueless);
+
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.CancelAfter(cancelTimeout);
-            CancellationTokens.Add(ActionType.DockerStart, cancellationTokenSource);
+            CancellationTokens.Add(EventAction.FarmerBotStart, cancellationTokenSource);
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>>("api/docker/start", cancellationTokenSource.Token);
-            CancellationTokens.Remove(ActionType.DockerStart);
-            if (response.Success && response.Data != null)
+            CancellationTokens.Remove(EventAction.FarmerBotStart);
+
+            if (response.Success && response.Data.Status())
             {
                 ActualFarmerBotStatus = response.Data;
+                _eventConsole.UpdateMessage(id, title, response.Message, false, true, GuiAndProgress, LogLevel.Information, EventResult.Successfully);
                 StatusChanged.Invoke();
             }
+            else if (!response.Success)
+            {
+                ActualFarmerBotStatus = null;
+                message = $"Error starting FarmerBot...\n{response.Message}";
+                _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
+                StatusChanged.Invoke();
+            }
+            else if (response.Success && !response.Data.Status())
+            {
+                ActualFarmerBotStatus = response.Data;
+                message = $"{response.Message}";
+                _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
+                StatusChanged.Invoke();
+            }
+
             return response;
         }
 
         public async Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(EventSourceActionId id)
         {
+            var title = "Stopping FarmerBot";
+            var message = $"Stopping FarmerBot...";
+            var GuiAndProgress = id.Typ == EventTyp.UserAction ? true : false;
+            id = _eventConsole.AddMessage(id, title, message, GuiAndProgress, false, GuiAndProgress, LogLevel.Information, EventResult.Valueless);
+
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.CancelAfter(cancelTimeout);
-            CancellationTokens.Add(ActionType.DockerStop, cancellationTokenSource);
+            CancellationTokens.Add(EventAction.FarmerBotStop, cancellationTokenSource);
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>>("api/docker/stop", cancellationTokenSource.Token);
-            CancellationTokens.Remove(ActionType.DockerStop);
-            if (response.Success && response.Data != null)
+            CancellationTokens.Remove(EventAction.FarmerBotStop);
+
+            if (response.Success && !response.Data.Status())
             {
                 ActualFarmerBotStatus = response.Data;
+                _eventConsole.UpdateMessage(id, title, response.Message, false, true, GuiAndProgress, LogLevel.Information, EventResult.Successfully);
                 StatusChanged.Invoke();
             }
+            else if (!response.Success)
+            {
+                ActualFarmerBotStatus = null;
+                message = $"Error stopping FarmerBot...\n{response.Message}";
+                _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
+                StatusChanged.Invoke();
+            }
+            else if (response.Success && response.Data.Status())
+            {
+                ActualFarmerBotStatus = response.Data;
+                message = $"{response.Message}";
+                _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
+                StatusChanged.Invoke();
+            }
+
             return response;
         }
 
@@ -131,17 +162,38 @@ namespace FarmerbotWebUI.Client.Services.Docker
 
         public async Task<ServiceResponse<FarmerBotStatus>> GetComposeStatusAsync(EventSourceActionId id)
         {
+            var title = "Getting FarmerBot status";
+            var message = $"Getting FarmerBot status...";
+            var GuiAndProgress = id.Typ == EventTyp.UserAction ? true : false;
+            id = _eventConsole.AddMessage(id, title, message, GuiAndProgress, false, GuiAndProgress, LogLevel.Information, EventResult.Valueless);
+
             _lockInterval = true;
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.CancelAfter(cancelTimeout);
-            CancellationTokens.Add(ActionType.DockerStatus, cancellationTokenSource);
+            CancellationTokens.Add(EventAction.FarmerBotStatus, cancellationTokenSource);
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>> ("api/docker/status", cancellationTokenSource.Token);
-            CancellationTokens.Remove(ActionType.DockerStatus);
-            if (response.Success && response.Data != null)
+            CancellationTokens.Remove(EventAction.FarmerBotStatus);
+            if (response.Success && response.Data.Status())
             {
                 ActualFarmerBotStatus = response.Data;
+                _eventConsole.UpdateMessage(id, title, response.Message, false, true, GuiAndProgress, LogLevel.Information, EventResult.Successfully);
                 StatusChanged.Invoke();
             }
+            else if (!response.Success)
+            {
+                ActualFarmerBotStatus = response.Data;
+                message = $"Error getting FarmerBot status...\n{response.Message}";
+                _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
+                StatusChanged.Invoke();
+            }
+            //else if (response.Success && !response.Data.Status())
+            //{
+            //    ActualFarmerBotStatus = response.Data;
+            //    message = $"{response.Message}";
+            //    _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
+            //    StatusChanged.Invoke();
+            //}
+
             _lockInterval = false;
             return response;
         }

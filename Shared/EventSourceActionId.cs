@@ -9,15 +9,26 @@ namespace FarmerbotWebUI.Shared
 {
     public class EventSourceActionId
     {
-        public EventSource Source { get; set; }
+        public EventSource Source { get; set; } = EventSource.Default;
         public string SourceClass => new StackTrace().GetFrame(1).GetMethod().DeclaringType.Name;
         public EventAction Action { get; set; }
         public string ActionClass => new StackTrace().GetFrame(1).GetMethod().Name;
+        public EventTyp Typ { get; set; } = EventTyp.Default;
         public int Id { get; set; } = 0;
     }
 
+    public enum EventTyp
+    {
+        Default,
+        UserAction,
+        ClientJob,
+        ServerJob,
+        DockerEvent,
+        FarmerbotEvent,
+        Unknown,
+    }
 
-    public enum EventSource
+public enum EventSource
     {
         Default,
         MainLayout,
@@ -29,9 +40,12 @@ namespace FarmerbotWebUI.Shared
     public enum EventAction
     {
         Default,
-        Start,
-        Stop,
-        Status,
         Unknown,
+        FarmerBotStart,
+        FarmerBotStop,
+        FarmerBotStatus,
+        FarmerBotPs,
+        FarmerBotLs,
+        FarmerBotLivelog
     }
 }

@@ -19,7 +19,6 @@ namespace FarmerbotWebUI.Shared
         public bool ShowInGui { get; set; } = false;
         public LogLevel Severity { get; set; } = LogLevel.Information;
         public EventResult Result { get; set; } = EventResult.Unknown;
-        public EventTyp Typ { get; set; } = EventTyp.Default;
 
         public bool GetResultAsBool()
         {
@@ -45,16 +44,6 @@ namespace FarmerbotWebUI.Shared
                     break;
             }
         }
-    }
-    public enum EventTyp
-    {
-        Default,
-        UserAction,
-        ClientEvent,
-        ServerEvent,
-        DockerEvent,
-        FarmerbotEvent,
-        Unknown,
     }
 
     public enum EventResult

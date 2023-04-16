@@ -10,6 +10,7 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
     public class EventConsoleService : IEventConsoleService
     {
         private int _messageId = 0;
+        private bool _showNotification = true; // TODO: get from config
         public List<EventMessage> Messages { get; set; } = new List<EventMessage>();
         private readonly NotificationService _notificationService;
         public event Action AddedMessage = () => { };
@@ -31,7 +32,7 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
             _messageId++;
             message.Id.Id = _messageId;
 
-            if (message.Typ == EventTyp.UserAction)
+            if (message.Id.Typ == EventTyp.UserAction)
             {
                 message.ShowInGui = true;
             }
@@ -42,43 +43,47 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
                 // TODO: send it to LogService
             }
 
-            if (message.ShowInGui)
-            {
-                Messages.Add(message);
-                _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = message, Detail = $"{_eventConsole.Transform(response.Success)}", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
+            Messages.Add(message);
+            if (_showNotification && message.ShowInGui)
+                _notificationService.Notify(new NotificationMessage { Severity = LogLevelStyleMapper.LogLevelToNotificationSeverity(message.Severity) , Summary = message.Message, Detail = $"{message.Result}", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
 
-                EventConsoleChanged.Invoke();
-                AddedMessage.Invoke();
-            }
+            EventConsoleChanged.Invoke();
+            AddedMessage.Invoke();
 
             return message.Id;
         }
 
-        public EventSourceActionId AddMessage(EventSourceActionId id, string title, string message, bool showPrograssBar, bool done, bool showInGui, LogLevel level, EventResult result, EventTyp typ)
+        public EventSourceActionId AddMessage(EventSourceActionId id, string title, string message, bool? showPrograssBar, bool? done, bool? showInGui, LogLevel level, EventResult result)
         {
             _messageId++;
             id.Id = _messageId;
 
-            if (typ == EventTyp.UserAction)
+            if (id.Typ == EventTyp.UserAction)
             {
                 showInGui = true;
             }
 
             DateTime? endTime = null;
-            if (done)
+            if (done != null)
             {
-                endTime = DateTime.UtcNow;
-                // TODO: send it to LogService 
+                if ((bool)done)
+                {
+                    endTime = DateTime.UtcNow;
+                    // TODO: send it to LogService 
+                }
             }
 
-            if (showInGui)
+            if (showInGui == null)
             {
-                Messages.Add(new EventMessage { Id = id, EndTime = endTime, Title = title, Message = message, ShowPrograssBar = showPrograssBar, Done = done, ShowInGui = showInGui, Severity = level, Typ = typ, Result = result });
-                _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = message, Detail = $"{_eventConsole.Transform(response.Success)}", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
-
-                EventConsoleChanged.Invoke();
-                AddedMessage.Invoke();
+                showInGui = false;
             }
+
+            Messages.Add(new EventMessage { Id = id, EndTime = endTime, Title = title, Message = message, ShowPrograssBar = (bool)showPrograssBar, Done = (bool)done, ShowInGui = (bool)showInGui, Severity = level, Result = result });
+            if (_showNotification && (bool)showInGui)
+                _notificationService.Notify(new NotificationMessage { Severity = LogLevelStyleMapper.LogLevelToNotificationSeverity(level), Summary = message, Detail = $"{result}", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
+
+            EventConsoleChanged.Invoke();
+            AddedMessage.Invoke();
 
             return id;
         }
@@ -96,16 +101,17 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
                     messageToUpdate.EndTime = DateTime.UtcNow;
                     // TODO: send it to LogService
                 }
-                if (messageToUpdate.ShowInGui)
-                {
-                    Messages.Add(messageToUpdate);
-                    EventConsoleChanged.Invoke();
-                    UpdatedMessage.Invoke();
-                }
+
+                Messages.Add(messageToUpdate);
+                if (_showNotification && message.ShowInGui)
+                    _notificationService.Notify(new NotificationMessage { Severity = LogLevelStyleMapper.LogLevelToNotificationSeverity(message.Severity), Summary = message.Message, Detail = $"{message.Result}", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
+
+                EventConsoleChanged.Invoke();
+                UpdatedMessage.Invoke();
             }
         }
 
-        public void UpdateMessage(EventSourceActionId id, string? title, string? message, bool? showPrograssBar, bool? done, bool? showInGui, LogLevel? level, EventResult? result, EventTyp? typ)
+        public void UpdateMessage(EventSourceActionId id, string? title, string? message, bool? showPrograssBar, bool? done, bool? showInGui, LogLevel? level, EventResult? result)
         {
             var messageToUpdate = Messages.FirstOrDefault(m => m.Id.Id == id.Id && m.Id.Source == id.Source && m.Id.Action == id.Action);
 
@@ -132,10 +138,6 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
                 {
                     messageToUpdate.Result = (EventResult)result;
                 }
-                if (typ != null)
-                {
-                    messageToUpdate.Typ = (EventTyp)typ;
-                }
                 if (done != null)
                 {
                     messageToUpdate.Done = (bool)done;
@@ -149,12 +151,13 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
                 {
                     messageToUpdate.ShowInGui = (bool)showInGui;
                 }
-                if (messageToUpdate.ShowInGui)
-                {
-                    Messages.Add(messageToUpdate);
-                    EventConsoleChanged.Invoke();
-                    UpdatedMessage.Invoke();
-                }
+
+                Messages.Add(messageToUpdate);
+                if (_showNotification && (bool)showInGui)
+                    _notificationService.Notify(new NotificationMessage { Severity = LogLevelStyleMapper.LogLevelToNotificationSeverity(messageToUpdate.Severity), Summary = messageToUpdate.Message, Detail = $"{messageToUpdate.Result}", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
+
+                EventConsoleChanged.Invoke();
+                UpdatedMessage.Invoke();
             }
         }
 
