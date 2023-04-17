@@ -2,15 +2,16 @@
 @inject IDockerService DockerService
 
 <RadzenCard Style="width: 310px; height: 200px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
-    <RadzenStack Orientation="Orientation.Horizontal" Class="rz-p-2" Gap="1rem">
-        @if (DockerService.ActualFarmerBotStatus != null)
+    <RadzenText Style="font-weight:700; margin-bottom: 8px" >Setup status</RadzenText>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
+        @if (DockerService.ActualFarmerBotStatus != null && !DockerService.ActualFarmerBotStatus.NoStatus)
         {
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.Center" Gap="5px">
-                <RadzenText Style="font-weight:500; width: 90px">Updated at</RadzenText>
-                <RadzenText Style="font-weight:500; width: 90px">All Containers</RadzenText>
-                <RadzenText Style="font-weight:500; width: 90px">Compose File</RadzenText>
-                <RadzenText Style="font-weight:500; width: 90px">Config File</RadzenText>
-                <RadzenText Style="font-weight:500; width: 90px">.Env-File</RadzenText>
+                <RadzenText Style="font-weight:300; width: 90px">Updated at</RadzenText>
+                <RadzenText Style="font-weight:300; width: 90px">All Containers</RadzenText>
+                <RadzenText Style="font-weight:300; width: 90px">Compose File</RadzenText>
+                <RadzenText Style="font-weight:300; width: 90px">Config File</RadzenText>
+                <RadzenText Style="font-weight:300; width: 90px">.Env-File</RadzenText>
             </RadzenStack>
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.Center" Gap="5px">
                 <RadzenText Style="font-weight:500; width: 140px">@DockerService.ActualFarmerBotStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
@@ -22,7 +23,9 @@
         }
         else
         {
-            <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenColumn Style="height: 100%; width: 100%; "  class="align-content-center justify-content-center">
+                <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Style="height: 130px; width: 100%; margin-top: 9px; " Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" class="rz-border-radius-0" />
+            </RadzenColumn>
         }
     </RadzenStack>
 </RadzenCard>

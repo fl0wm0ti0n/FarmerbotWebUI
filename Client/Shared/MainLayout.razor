@@ -93,7 +93,7 @@
 
     override protected async void OnInitialized()
     {
-        if (DockerService.ActualFarmerBotStatus == null)
+        if (DockerService.ActualFarmerBotStatus == null || DockerService.ActualFarmerBotStatus.NoStatus)
         {
             EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.FarmerBotStatus, Source = EventSource.MainLayout, Typ = EventTyp.ClientJob };
             Response = await DockerService.GetComposeStatusAsync(eventSourceActionId);

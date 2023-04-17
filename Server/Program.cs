@@ -1,6 +1,8 @@
 global using FarmerbotWebUI.Server.Services.Docker;
 global using FarmerbotWebUI.Server.Services.Filesystem;
 global using FarmerbotWebUI.Shared;
+using FarmerbotWebUI.Server.Services.TfApiClient;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -10,14 +12,20 @@ builder.Services.AddRazorPages();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+
+builder.Services.AddHttpClient<TfGraphQLApiClient>(client =>
+{
+    client.BaseAddress = new Uri("https://graphql.qa.grid.tf/graphql");
+});
 //builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IDockerService, DockerService>();
+builder.Services.AddScoped<ITfGraphQLApiClient, TfGraphQLApiClient>();
 
-//  In ConfigureServices method of Startup class
-builder.Services.AddScoped<IDockerService>(provider =>
-{
-    return new DockerService(builder.Configuration);
-});
+//builder.Services.AddScoped<IDockerService>(provider =>
+//{
+//    return new DockerService(builder.Configuration);
+//});
 
 var app = builder.Build();
 

@@ -45,15 +45,14 @@
         var message = EventConsoleService.Messages[i];
     @if (message.ShowInGui)
     {
-        <RadzenRow class="@GetSeverityClass(message)" Style="margin-bottom: 2px; height: 25px">
-
+        <RadzenRow class="@GetSeverityClass(message.Severity)" Style="margin-bottom: 2px; height: 25px">
                 @if (message.ShowPrograssBar)
                 {
                     <RadzenColumn Size="1">
                         <RadzenText onclick="@(() => OpenEventDialog(message))" Style="padding-top: 2px; padding-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight:300" class="rz-border-color-base-700">@message.Title</RadzenText>
                     </RadzenColumn>
                     <RadzenColumn Size="10" class="align-content-center justify-content-center">
-                        <RadzenProgressBar ProgressBarStyle="@GetStyle(message)" Style="height: 8px; width: 100%; margin-top: 9px; " Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" class="rz-border-radius-0" />
+                        <RadzenProgressBar ProgressBarStyle="@GetStyle(message.Severity)" Style="height: 8px; width: 100%; margin-top: 9px; " Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" class="rz-border-radius-0" />
                     </RadzenColumn>
                     <RadzenColumn Size="1">
                         <RadzenButton Size="ButtonSize.ExtraSmall" Style="margin-bottom: 4px;" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => DockerService.CancelOperation(message.Id.Action)) Text="Cancel" ButtonStyle="ButtonStyle.Danger" Disabled="@(!message.GetResultAsBool())" />
@@ -113,14 +112,14 @@
                     Style = "background: rgb(178, 222, 228); color: black; font-weight: 100; font-size:small; word-wrap: break-word;"
             });
 
-    private string GetSeverityClass(EventMessage message)
+    private string GetSeverityClass(LogLevel severity)
     {
-        return "justify-content-center align-items-center rz-shadow-3 " + LogLevelStyleMapper.LogLevelToRadzenCss(message.Severity);
+        return "justify-content-center align-items-center rz-shadow-3 " + LogLevelStyleMapper.LogLevelToRadzenCss(severity);
     }
 
-    private ProgressBarStyle GetStyle(EventMessage message)
+    private ProgressBarStyle GetStyle(LogLevel severity)
     {
-        return LogLevelStyleMapper.LogLevelToProgressBarStyle(message.Severity);
+        return LogLevelStyleMapper.LogLevelToProgressBarStyle(severity);
     }
 
     private void CloseConsole()

@@ -28,7 +28,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
 
         public Dictionary<EventAction, CancellationTokenSource> CancellationTokens = new Dictionary<EventAction, CancellationTokenSource>();
         public event Action StatusChanged = () => { };
-        public FarmerBotStatus? ActualFarmerBotStatus { get; private set; } = null;
+        public FarmerBotStatus ActualFarmerBotStatus { get; private set; } = new FarmerBotStatus { NoStatus = true };
 
         public DockerService(HttpClient httpClient, IEventConsoleService eventConsole, NotificationService notificationService)
         {
@@ -48,6 +48,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
                     try
                     {
                         EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.FarmerBotStatus, Source = EventSource.DockerService, Typ = EventTyp.ClientJob};
+                        
                         var response = await GetComposeStatusAsync(eventSourceActionId);
                     }
                     finally

@@ -20,8 +20,9 @@ namespace FarmerbotWebUI.Server.Services.Docker
         private readonly string _farmerBotConfigFile;
         private readonly string _farmerBotLogFile;
         private readonly int _farmerBotStatusInterval;
-        private readonly DockerClient _client;
-        public FarmerBotStatus ActualFarmerBotStatus { get; private set; } = new FarmerBotStatus();
+        private List<string> _containerNames = new List<string>() { "farmerbot", "redis", "rmbpeer", "grid3_client" }; // TODO: Get from config
+
+        public FarmerBotStatus ActualFarmerBotStatus { get; private set; } = new FarmerBotStatus { NoStatus = false };
         public FarmerBotServices FarmerBotServices { get; private set; } = new FarmerBotServices();
 
         public DockerService(IConfiguration configuration)
@@ -169,15 +170,13 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 error = ex.Message;
             }
 
-            List<string> containerNames = new List<string>() { "farmerbot", "redis", "rmbpeer", "grid3_client" };
-
             string fullPath = Path.GetFullPath(_workingDirectory).TrimEnd(Path.DirectorySeparatorChar);
             string lastDir = fullPath.Split(Path.DirectorySeparatorChar).Last().ToLower();
 
             try
             {
                 var containers = await client.Containers.ListContainersAsync(new ContainersListParameters { All = true }, cancellationToken);
-                foreach (var container in containerNames)
+                foreach (var container in _containerNames)
                 {
                     var containerResponse = containers.FirstOrDefault(c => c.Names.Contains($"/{lastDir}-{container}-1"));
 
@@ -226,6 +225,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
             {
                 exitCode = 1;
                 error = ex.Message;
+                ActualFarmerBotStatus.NoStatus = true;
             }
 
             if (ActualFarmerBotStatus.Status())
@@ -240,6 +240,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
             {
                 error = "Canceled";
                 exitCode = 1;
+                ActualFarmerBotStatus.NoStatus = true;
             }
             ServiceResponse<FarmerBotStatus> response = new ServiceResponse<FarmerBotStatus>
             {
