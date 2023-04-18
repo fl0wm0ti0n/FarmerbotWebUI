@@ -26,7 +26,7 @@ namespace FarmerbotWebUI.Server.Controllers
         [HttpPost("setsettings")]
         public async Task<ActionResult<ServiceResponse<string>>> SetConfigurationObjectAsync(AppSettings appSettings)
         {
-            var output = await _settingsService.SetConfigurationObject(appSettings);
+            var output = _settingsService.SetConfigurationObject(appSettings);
             return Ok(output);
         }
     }
