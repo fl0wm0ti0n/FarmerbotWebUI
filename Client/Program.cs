@@ -3,6 +3,7 @@ global using FarmerbotWebUI.Client;
 global using FarmerbotWebUI.Client.Services.Docker;
 global using FarmerbotWebUI.Client.Services.Filesystem;
 global using FarmerbotWebUI.Client.Services.EventConsole;
+global using FarmerbotWebUI.Client.Services.Settings;
 global using FarmerbotWebUI.Client.Shared;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
