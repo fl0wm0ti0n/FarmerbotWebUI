@@ -5,11 +5,11 @@ namespace FarmerbotWebUI.Server.Services.Settings
 {
     public interface ISettingsService
     {
-        IConfiguration Configuration { get; set; }
-        AppSettings AppSetting { get; }
-        IConfiguration ReloadConfiguration();
-        void UpdateConfiguration(string key, string value);
-        AppSettings GetConfigurationObject();
-        void SetConfigurationObject(AppSettings appSettings);
+        ServiceResponse<IConfiguration> Configuration { get; set; }
+        ServiceResponse<AppSettings> AppSetting { get; }
+        ServiceResponse<IConfiguration> ReloadConfiguration();
+        ServiceResponse<bool> UpdateConfiguration(string key, string value);
+        ServiceResponse<AppSettings> GetConfigurationObject();
+        ServiceResponse<bool> SetConfigurationObject(AppSettings appSettings);
     }
 }
