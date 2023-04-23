@@ -10,13 +10,24 @@ namespace FarmerbotWebUI.Server.Services.Settings
     public class SettingsService : ISettingsService
     {
         private readonly string _configPath;
+        private IAppSettings _appSettings;
+
         public IConfiguration Configuration { get; set; }
         public AppSettings AppSetting { get; private set; } = new AppSettings();
 
-        public SettingsService(string configPath)
+        public SettingsService(IAppSettings appSettings)
         {
-            _configPath = configPath;
-            ReadConfiguration();
+            _configPath = "appsettings.json";
+            _appSettings = appSettings;
+            try
+            {
+                ReadConfiguration();
+                // TODO: send to event service
+            }
+            catch (Exception ex)
+            {
+                // TODO: send to event service
+            }
         }
 
         private void  ReadConfiguration()
@@ -25,7 +36,9 @@ namespace FarmerbotWebUI.Server.Services.Settings
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile(_configPath, optional: false, reloadOnChange: true)
             .Build();
+            _appSettings = Configuration.Get<AppSettings>();
             AppSetting = Configuration.Get<AppSettings>();
+            _appSettings.InvokeOnAppSettingsChanged(AppSetting);
         }
 
         public ServiceResponse<IConfiguration> ReloadConfiguration()

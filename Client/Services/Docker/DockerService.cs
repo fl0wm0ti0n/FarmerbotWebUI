@@ -8,7 +8,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
     {
         private readonly HttpClient _httpClient;
         private readonly IEventConsoleService _eventConsole;
-        private readonly ISettingsService _settingsService;
+        private IAppSettings _appSettings;
         private SemaphoreSlim _statusSemaphore = new SemaphoreSlim(1);
         private bool _lockInterval = false;
 
@@ -16,12 +16,18 @@ namespace FarmerbotWebUI.Client.Services.Docker
         public event Action StatusChanged = () => { };
         public FarmerBotStatus ActualFarmerBotStatus { get; private set; } = new FarmerBotStatus { NoStatus = true };
 
-        public DockerService(HttpClient httpClient, IEventConsoleService eventConsole, ISettingsService settingsService)
+        public DockerService(HttpClient httpClient, IEventConsoleService eventConsole, IAppSettings appSettings)
         {
 
             _httpClient = httpClient;
             _eventConsole = eventConsole;
-            _settingsService = settingsService;
+            _appSettings = appSettings;
+            _appSettings.OnAppSettingsChanged += UpdateAppSettings;
+        }
+
+        private void UpdateAppSettings(object sender, AppSettings newAppSettings)
+        {
+            _appSettings = newAppSettings;
         }
 
         public async Task<ServiceResponse<FarmerBotStatus>> StartStatusInterval()
@@ -51,7 +57,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
                         _statusSemaphore.Release();
                     }
                 }
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_settingsService.AppSetting.FarmerBotSettings.FarmerBotStatusInterval));
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_appSettings.FarmerBotSettings.FarmerBotStatusInterval));
 
             // Warten Sie auf das Ergebnis des TaskCompletionSource, bevor Sie die Antwort zurückgeben
             return await taskCompletionSource.Task;
@@ -78,7 +84,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
             id = _eventConsole.AddMessage(id, title, message, GuiAndProgress, false, GuiAndProgress, LogLevel.Information, EventResult.Valueless);
 
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            cancellationTokenSource.CancelAfter(_settingsService.AppSetting.GeneralSettings.CancelationTimeout);
+            cancellationTokenSource.CancelAfter(_appSettings.GeneralSettings.CancelationTimeout);
             CancellationTokens.Add(EventAction.FarmerBotStart, cancellationTokenSource);
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>>("api/docker/start", cancellationTokenSource.Token);
             CancellationTokens.Remove(EventAction.FarmerBotStart);
@@ -113,7 +119,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
             id = _eventConsole.AddMessage(id, title, message, GuiAndProgress, false, GuiAndProgress, LogLevel.Information, EventResult.Valueless);
 
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            cancellationTokenSource.CancelAfter(_settingsService.AppSetting.GeneralSettings.CancelationTimeout);
+            cancellationTokenSource.CancelAfter(_appSettings.GeneralSettings.CancelationTimeout);
             CancellationTokens.Add(EventAction.FarmerBotStop, cancellationTokenSource);
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>>("api/docker/stop", cancellationTokenSource.Token);
             CancellationTokens.Remove(EventAction.FarmerBotStop);
@@ -164,7 +170,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
 
             _lockInterval = true;
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            cancellationTokenSource.CancelAfter(_settingsService.AppSetting.GeneralSettings.CancelationTimeout);
+            cancellationTokenSource.CancelAfter(_appSettings.GeneralSettings.CancelationTimeout);
             CancellationTokens.Add(EventAction.FarmerBotStatus, cancellationTokenSource);
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>>("api/docker/status", cancellationTokenSource.Token);
             CancellationTokens.Remove(EventAction.FarmerBotStatus);
@@ -190,6 +196,11 @@ namespace FarmerbotWebUI.Client.Services.Docker
 
             _lockInterval = false;
             return response;
+        }
+
+        public void Dispose()
+        {
+            _appSettings.OnAppSettingsChanged -= UpdateAppSettings;
         }
     }
 }

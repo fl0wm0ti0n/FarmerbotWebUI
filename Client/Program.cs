@@ -8,15 +8,17 @@ global using FarmerbotWebUI.Client.Shared;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Radzen;
+using FarmerBotWebUI.Shared;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+builder.Services.AddScoped<IEventConsoleService, EventConsoleService>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<IFileService, FilesService>();
-builder.Services.AddScoped<IEventConsoleService, EventConsoleService>();
 builder.Services.AddScoped<IDockerService, DockerService>();
+builder.Services.AddScoped<IAppSettings, AppSettings>();
 builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<TooltipService>();
@@ -26,6 +28,5 @@ builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<MainLayout>();
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-
 
 await builder.Build().RunAsync();

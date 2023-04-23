@@ -5,21 +5,16 @@
 //    using FarmerBotWebUI.Shared;
 //
 //    var appsettings = Appsettings.FromJson(jsonString);
+using System.Globalization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace FarmerBotWebUI.Shared
 {
-    using System;
-    using System.Collections.Generic;
-
-    using System.Globalization;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
-    public partial class AppSettings
+    public class AppSettings : IAppSettings
     {
-
         [JsonProperty("AllowedHosts")]
-        public string AllowedHosts { get; set; } 
+        public string AllowedHosts { get; set; } = "*";
 
         [JsonProperty("GeneralSettings")]
         public GeneralSettings GeneralSettings { get; set; } = new GeneralSettings();
@@ -40,7 +35,16 @@ namespace FarmerBotWebUI.Shared
         public SecuritySettings SecuritySettings { get; set; } = new SecuritySettings();
 
         [JsonProperty("NotificationSettings")]
-        public NotificationSettings NotificationSettings { get; set; }
+        public NotificationSettings NotificationSettings { get; set; } = new NotificationSettings();
+        
+        public static AppSettings FromJson(string json) => JsonConvert.DeserializeObject<AppSettings>(json, FarmerBotWebUI.Shared.Converter.Settings);
+
+        public event EventHandler<AppSettings> OnAppSettingsChanged;
+
+        public void InvokeOnAppSettingsChanged(AppSettings appSettings)
+        {
+            OnAppSettingsChanged?.Invoke(this, appSettings);
+        }
     }
 
     public partial class DockerSettings
@@ -127,12 +131,7 @@ namespace FarmerBotWebUI.Shared
     public partial class NotificationSettings
     {
         [JsonProperty("GuiNotification")]
-        public bool GuiNotification { get; set; }
-    }
-
-    public partial class AppSettings
-    {
-        public static AppSettings FromJson(string json) => JsonConvert.DeserializeObject<AppSettings>(json, FarmerBotWebUI.Shared.Converter.Settings);
+        public bool GuiNotification { get; set; } = true;
     }
 
     public static class Serialize

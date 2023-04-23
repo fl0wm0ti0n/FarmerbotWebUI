@@ -4,6 +4,7 @@ global using FarmerbotWebUI.Server.Services.Settings;
 global using FarmerbotWebUI.Server.Services.TfApiClient;
 global using FarmerbotWebUI.Shared;
 using FarmerbotWebUI.Server;
+using FarmerBotWebUI.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,10 +17,8 @@ builder.Services.AddSwaggerGen();
 
 
 //builder.Services.AddSingleton(new SettingsService("appsettings.json"));
-builder.Services.AddScoped<ISettingsService>(provider =>
-{
-    return new SettingsService("appsettings.json");
-});
+builder.Services.AddSingleton<IAppSettings, AppSettings>();
+builder.Services.AddScoped<ISettingsService, SettingsService>();
 
 builder.Services.AddHttpClient<TfGraphQLApiClient>(client =>
 {
@@ -39,11 +38,12 @@ builder.Services.AddScoped<ITfGraphQLApiClient, TfGraphQLApiClient>();
 
 var app = builder.Build();
 
-
 // Startup 
-var tfGraphQLApiClient = app.Services.GetRequiredService<TfGraphQLApiClient>();
-await tfGraphQLApiClient.StartStatusInterval();
-
+using (var scope = app.Services.CreateScope())
+{
+    var tfGraphQLApiClient = scope.ServiceProvider.GetRequiredService<TfGraphQLApiClient>();
+    await tfGraphQLApiClient.StartStatusInterval();
+}
 
 app.UseSwaggerUI();
 

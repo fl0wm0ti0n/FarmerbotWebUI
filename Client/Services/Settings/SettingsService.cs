@@ -12,17 +12,18 @@ namespace FarmerbotWebUI.Client.Services.Settings
     {
         private readonly HttpClient _httpClient;
         private readonly IEventConsoleService _eventConsole;
-        private readonly ISettingsService _settingsService;
         private SemaphoreSlim _statusSemaphore = new SemaphoreSlim(1);
         private bool _lockInterval = false;
+        private IAppSettings _appSettings;
 
+        public event EventHandler<AppSettings> OnAppSettingsChanged;
         public AppSettings AppSetting { get; private set; } = new AppSettings();
 
-        public SettingsService(HttpClient httpClient, IEventConsoleService eventConsole, ISettingsService settingsService)
+        public SettingsService(HttpClient httpClient, IEventConsoleService eventConsole, IAppSettings appSettings)
         {
             _httpClient = httpClient;
             _eventConsole = eventConsole;
-            _settingsService = settingsService;
+            _appSettings = appSettings;
         }
 
         public async Task<ServiceResponse<AppSettings>> StartStatusInterval()
@@ -52,7 +53,7 @@ namespace FarmerbotWebUI.Client.Services.Settings
                         _statusSemaphore.Release();
                     }
                 }
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_settingsService.AppSetting.GeneralSettings.ServerUpdateInterval));
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_appSettings.GeneralSettings.ServerUpdateInterval));
 
             // Warten Sie auf das Ergebnis des TaskCompletionSource, bevor Sie die Antwort zurückgeben
             return await taskCompletionSource.Task;
@@ -69,12 +70,16 @@ namespace FarmerbotWebUI.Client.Services.Settings
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<AppSettings>>("api/settings/getsettings");
             if (response.Success)
             {
+                _appSettings = response.Data;
                 AppSetting = response.Data;
+                _appSettings.InvokeOnAppSettingsChanged(AppSetting);
                 _eventConsole.UpdateMessage(id, title, response.Message, false, true, GuiAndProgress, LogLevel.Information, EventResult.Successfully);
             }
             else if (!response.Success)
             {
+                _appSettings = response.Data;
                 AppSetting = response.Data;
+                OnAppSettingsChanged?.Invoke(this, response.Data);
                 message = $"Error getting Settings...\n{response.Message}";
                 _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
             }
@@ -92,12 +97,13 @@ namespace FarmerbotWebUI.Client.Services.Settings
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<AppSettings>>("api/settings/setsettings");
             if (response.Success)
             {
-                //AppSetting = response.Data;
+                _appSettings = response.Data;
+                AppSetting = response.Data;
+                _appSettings.InvokeOnAppSettingsChanged(AppSetting);
                 _eventConsole.UpdateMessage(id, title, response.Message, false, true, GuiAndProgress, LogLevel.Information, EventResult.Successfully);
             }
             else if (!response.Success)
             {
-                //AppSetting = response.Data;
                 message = $"Error updating Settings...\n{response.Message}";
                 _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
             }

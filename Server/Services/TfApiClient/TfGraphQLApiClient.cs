@@ -12,14 +12,20 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
     public class TfGraphQLApiClient : ITfGraphQLApiClient
     {
         private readonly HttpClient _client;
-        private readonly ISettingsService _settingsService;
+        private IAppSettings _appSettings;
         private SemaphoreSlim _statusSemaphore = new SemaphoreSlim(1);
         private bool _lockInterval = false;
 
-        public TfGraphQLApiClient(HttpClient client, ISettingsService settingsService)
+        public TfGraphQLApiClient(HttpClient client, IAppSettings appSettings)
         {
             _client = client;
-            _settingsService = settingsService;
+            _appSettings = appSettings;
+            _appSettings.OnAppSettingsChanged += UpdateAppSettings;
+        }
+
+        private void UpdateAppSettings(object sender, AppSettings newAppSettings)
+        {
+            _appSettings = newAppSettings;
         }
 
         public async Task<ServiceResponse<Nodes>> StartStatusInterval()
@@ -34,7 +40,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
                     await _statusSemaphore.WaitAsync();
                     try
                     {
-                        var farmId = _settingsService.AppSetting.ThreefoldFarmSettings.FarmId; //TODO: get FarmId from config.md
+                        var farmId = _appSettings.ThreefoldFarmSettings.FarmId; //TODO: get FarmId from config.md
                         EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetGridNodeStatus, Source = EventSource.TfGraphQlApiClient, Typ = EventTyp.ServerJob };
                         var nodeResponse = await GetNodesByFarmIdAsync(farmId);
                         //var farmResponse = await GetFarmDetailsAsync(farmId);
@@ -51,7 +57,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
                         _statusSemaphore.Release();
                     }
                 }
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_settingsService.AppSetting.GeneralSettings.ServerUpdateInterval));
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_appSettings.GeneralSettings.ServerUpdateInterval));
 
             // Warten Sie auf das Ergebnis des TaskCompletionSource, bevor Sie die Antwort zurückgeben
             return await taskCompletionSource.Task;
@@ -127,7 +133,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             try
             {
                 var content = new StringContent(JObject.FromObject(requestBody).ToString(), Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync(_settingsService.AppSetting.ThreefoldApiSettings.GraphQl, content);
+                var response = await _client.PostAsync(_appSettings.ThreefoldApiSettings.GraphQl, content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -199,7 +205,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             try
             {
                 var content = new StringContent(JObject.FromObject(requestBody).ToString(), Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync(_settingsService.AppSetting.ThreefoldApiSettings.GraphQl, content);
+                var response = await _client.PostAsync(_appSettings.ThreefoldApiSettings.GraphQl, content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -231,6 +237,10 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
                     Success = false
                 };
             }
+        }
+        public void Dispose()
+        {
+            _appSettings.OnAppSettingsChanged -= UpdateAppSettings;
         }
     }
 }
