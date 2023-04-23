@@ -7,7 +7,7 @@ using Newtonsoft.Json.Converters;
 
 namespace FarmerBotWebUI.Shared
 {
-    public partial class BotNode
+    public partial class BotNodes
     {
         public List<BotNode> Node { get; set; }
         public BotFarm Farm { get; set; }

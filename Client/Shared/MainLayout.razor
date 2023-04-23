@@ -82,7 +82,6 @@
 
 
 @code {
-    private ServiceResponse<FarmerBotStatus>? Response { get; set; } = new ServiceResponse<FarmerBotStatus>();
     private bool sidebarExpanded = true;
     private bool DialogAlreadyCreated = false;
     // Settings dialog vars
@@ -90,20 +89,6 @@
     private bool CloseDialogOnOverlayClick = false;
     private bool ShowMask = true;
     private Task<Settings>? dialogResult = null;
-
-    override protected async void OnInitialized()
-    {
-        if (DockerService.ActualFarmerBotStatus == null || DockerService.ActualFarmerBotStatus.NoStatus)
-        {
-            EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.FarmerBotStatus, Source = EventSource.MainLayout, Typ = EventTyp.ClientJob };
-            Response = await DockerService.GetComposeStatusAsync(eventSourceActionId);
-            // TODO: Error handling 
-        }
-        else
-        {
-            // TODO: Error handling if container false
-        }
-    }
 
     private void OpenUrlInNewTab(string url)
     {

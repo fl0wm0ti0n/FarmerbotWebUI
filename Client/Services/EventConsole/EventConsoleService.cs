@@ -10,9 +10,10 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
     public class EventConsoleService : IEventConsoleService
     {
         private int _messageId = 0;
-        private bool _showNotification = true; // TODO: get from config
         public List<EventMessage> Messages { get; set; } = new List<EventMessage>();
         private readonly NotificationService _notificationService;
+        private readonly ISettingsService _settingsService;
+
         public event Action AddedMessage = () => { };
         public event Action UpdatedMessage = () => { };
         public event Action EventConsoleChanged = () => { };
@@ -22,9 +23,10 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
         public List<EventMessage> GetMessages() => Messages;
         public EventMessage? GetMessage(int id) => Messages.FirstOrDefault(m => m.Id.Id == id);
 
-        public EventConsoleService(NotificationService notificationService)
+        public EventConsoleService(NotificationService notificationService, ISettingsService settingsService)
         {
             _notificationService = notificationService;
+            _settingsService = settingsService;
         }
 
         public EventSourceActionId AddMessage(EventMessage message)
@@ -44,7 +46,7 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
             }
 
             Messages.Add(message);
-            if (_showNotification && message.ShowInGui)
+            if (_settingsService.AppSetting.NotificationSettings.GuiNotification && message.ShowInGui)
                 _notificationService.Notify(new NotificationMessage { Severity = LogLevelStyleMapper.LogLevelToNotificationSeverity(message.Severity) , Summary = message.Message, Detail = $"{message.Result}", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
 
             EventConsoleChanged.Invoke();
@@ -79,7 +81,7 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
             }
 
             Messages.Add(new EventMessage { Id = id, EndTime = endTime, Title = title, Message = message, ShowPrograssBar = (bool)showPrograssBar, Done = (bool)done, ShowInGui = (bool)showInGui, Severity = level, Result = result });
-            if (_showNotification && (bool)showInGui)
+            if (_settingsService.AppSetting.NotificationSettings.GuiNotification && (bool)showInGui)
                 _notificationService.Notify(new NotificationMessage { Severity = LogLevelStyleMapper.LogLevelToNotificationSeverity(level), Summary = message, Detail = $"{result}", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
 
             EventConsoleChanged.Invoke();
@@ -103,7 +105,7 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
                 }
 
                 Messages.Add(messageToUpdate);
-                if (_showNotification && message.ShowInGui)
+                if (_settingsService.AppSetting.NotificationSettings.GuiNotification && message.ShowInGui)
                     _notificationService.Notify(new NotificationMessage { Severity = LogLevelStyleMapper.LogLevelToNotificationSeverity(message.Severity), Summary = message.Message, Detail = $"{message.Result}", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
 
                 EventConsoleChanged.Invoke();
@@ -153,7 +155,7 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
                 }
 
                 Messages.Add(messageToUpdate);
-                if (_showNotification && (bool)showInGui)
+                if (_settingsService.AppSetting.NotificationSettings.GuiNotification && (bool)showInGui)
                     _notificationService.Notify(new NotificationMessage { Severity = LogLevelStyleMapper.LogLevelToNotificationSeverity(messageToUpdate.Severity), Summary = messageToUpdate.Message, Detail = $"{messageToUpdate.Result}", Duration = 4000, CloseOnClick = true, Payload = DateTime.Now });
 
                 EventConsoleChanged.Invoke();

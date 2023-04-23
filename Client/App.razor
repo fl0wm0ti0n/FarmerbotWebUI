@@ -1,4 +1,7 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+﻿@inject ISettingsService SettingsService
+@inject IDockerService DockerService
+
+<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
     </Found>
@@ -14,3 +17,33 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // initialize routines
+
+        // init settings
+        //await SettingsService.GetConfigurationObject(new EventSourceActionId { Action = EventAction.GetSettings, Source = EventSource.Startup, Typ = EventTyp.ClientJob });
+        await SettingsService.StartStatusInterval();
+
+        // init docker
+        if (SettingsService.AppSetting.DockerSettings.DockerEndpointWindows != "" || SettingsService.AppSetting.DockerSettings.DockerEndpointWindows != "")
+        {
+            await DockerService.StartStatusInterval();
+            //if (DockerService.ActualFarmerBotStatus == null || DockerService.ActualFarmerBotStatus.NoStatus)
+            //{
+            //    EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.FarmerBotStatus, Source = EventSource.Startup, Typ = EventTyp.ClientJob };
+            //    Response = await DockerService.GetComposeStatusAsync(eventSourceActionId);
+            //    // TODO: Error handling
+            //}
+            //else
+            //{
+            //    // TODO: Error handling if container false
+            //}
+        }
+    }
+}

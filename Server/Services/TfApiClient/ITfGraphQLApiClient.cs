@@ -9,7 +9,8 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
 {
     public interface ITfGraphQLApiClient
     {
-        Task<List<Node>> GetNodesByFarmIdAsync(int farmId);
-        Task<List<Farm>> GetFarmDetailsAsync(int farmId);
+        Task<ServiceResponse<Nodes>> StartStatusInterval();
+        Task<ServiceResponse<Nodes>> GetNodesByFarmIdAsync(int farmId);
+        Task<ServiceResponse<Farms>> GetFarmDetailsAsync(int farmId);
     }
 }

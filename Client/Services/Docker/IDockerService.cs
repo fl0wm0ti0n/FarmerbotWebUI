@@ -6,6 +6,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
     {
         public event Action StatusChanged;
         FarmerBotStatus ActualFarmerBotStatus { get; }
+        Task<ServiceResponse<FarmerBotStatus>> StartStatusInterval();
         Task<bool> CancelOperation(EventAction command);
         Task<ServiceResponse<FarmerBotStatus>> StartComposeAsync(EventSourceActionId id);
         Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(EventSourceActionId id);

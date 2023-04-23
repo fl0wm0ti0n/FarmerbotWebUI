@@ -33,9 +33,11 @@ public enum EventSource
         Default,
         MainLayout,
         Dashboard,
-        Settings,
+        EventService,
+        SettingsService,
         DockerService,
-        TfGraphQlApiClient
+        TfGraphQlApiClient,
+        Startup
     }
 
     public enum EventAction
@@ -49,6 +51,8 @@ public enum EventSource
         FarmerBotLs,
         FarmerBotLivelog,
         GetGridNodeStatus,
-        GetGridFarmStatus
+        GetGridFarmStatus,
+        GetSettings,
+        SetSettings,
     }
 }

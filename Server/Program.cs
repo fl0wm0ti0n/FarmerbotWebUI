@@ -3,6 +3,7 @@ global using FarmerbotWebUI.Server.Services.Filesystem;
 global using FarmerbotWebUI.Server.Services.Settings;
 global using FarmerbotWebUI.Server.Services.TfApiClient;
 global using FarmerbotWebUI.Shared;
+using FarmerbotWebUI.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +35,15 @@ builder.Services.AddScoped<ITfGraphQLApiClient, TfGraphQLApiClient>();
 //    return new DockerService(builder.Configuration);
 //});
 
+//builder.Services.AddScoped<StartupService>();
+
 var app = builder.Build();
+
+
+// Startup 
+var tfGraphQLApiClient = app.Services.GetRequiredService<TfGraphQLApiClient>();
+await tfGraphQLApiClient.StartStatusInterval();
+
 
 app.UseSwaggerUI();
 

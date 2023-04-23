@@ -1,50 +1,30 @@
 ﻿using Docker.DotNet;
 using Docker.DotNet.Models;
-using FarmerbotWebUI.Client.Services.Docker;
-using FarmerbotWebUI.Shared;
-using Microsoft.Extensions.Configuration;
-using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace FarmerbotWebUI.Server.Services.Docker
 {
     public class DockerService : IDockerService
     {
-        private readonly IConfiguration _config;
-        private readonly string _workingDirectory;
-        private readonly string _dockerComposeFile;
-        private readonly string _threefoldConfigFile;
-        private readonly string _farmerBotConfigFile;
-        private readonly string _farmerBotLogFile;
-        private readonly int _farmerBotStatusInterval;
-        private List<string> _containerNames = new List<string>() { "farmerbot", "redis", "rmbpeer", "grid3_client" }; // TODO: Get from config
-
+        private readonly ISettingsService _config;
         public FarmerBotStatus ActualFarmerBotStatus { get; private set; } = new FarmerBotStatus { NoStatus = false };
         public FarmerBotServices FarmerBotServices { get; private set; } = new FarmerBotServices();
 
-        public DockerService(IConfiguration configuration)
+        public DockerService(ISettingsService config)
         {
-            _config = configuration;
-            _workingDirectory = _config.GetValue<string>("FarmerBotSettings:WorkingDirectory");
-            _dockerComposeFile = _config.GetValue<string>("FarmerBotSettings:ComposeFile");
-            _threefoldConfigFile = _config.GetValue<string>("FarmerBotSettings:ThreefoldNetworkFile");
-            _farmerBotConfigFile = _config.GetValue<string>("FarmerBotSettings:FarmerBotConfigFile");
-            _farmerBotLogFile = _config.GetValue<string>("FarmerBotSettings:FarmerBotLogFile");
-            _farmerBotStatusInterval = _config.GetValue<int>("FarmerBotSettings:FarmerBotStatusInterval");
+            _config = config;
         }
 
         private string GetDockerPipe()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return _config.GetValue<string>("DockerSettings:DockerEndpointWindows");
+                return _config.AppSetting.DockerSettings.DockerEndpointWindows;
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                return _config.GetValue<string>("DockerSettings:DockerEndpointLinux");
+                return _config.AppSetting.DockerSettings.DockerEndpointLinux;
             }
             else
             {
@@ -54,9 +34,9 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
         public async Task<ServiceResponse<FarmerBotStatus>> StartComposeAsync(CancellationToken cancellationToken)
         {
-            var processStartInfo = new ProcessStartInfo("docker", "compose up -d")
+            var processStartInfo = new ProcessStartInfo("docker", _config.AppSetting.DockerSettings.DockerRunCommand)
             {
-                WorkingDirectory = _workingDirectory,
+                WorkingDirectory = _config.AppSetting.FarmerBotSettings.WorkingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
@@ -103,9 +83,9 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
         public async Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(CancellationToken cancellationToken)
         {
-            var processStartInfo = new ProcessStartInfo("docker", "compose down")
+            var processStartInfo = new ProcessStartInfo("docker", _config.AppSetting.DockerSettings.DockerDownCommand)
             {
-                WorkingDirectory = _workingDirectory,
+                WorkingDirectory = _config.AppSetting.FarmerBotSettings.WorkingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
@@ -170,13 +150,13 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 error = ex.Message;
             }
 
-            string fullPath = Path.GetFullPath(_workingDirectory).TrimEnd(Path.DirectorySeparatorChar);
+            string fullPath = Path.GetFullPath(_config.AppSetting.FarmerBotSettings.WorkingDirectory).TrimEnd(Path.DirectorySeparatorChar);
             string lastDir = fullPath.Split(Path.DirectorySeparatorChar).Last().ToLower();
 
             try
             {
                 var containers = await client.Containers.ListContainersAsync(new ContainersListParameters { All = true }, cancellationToken);
-                foreach (var container in _containerNames)
+                foreach (var container in _config.AppSetting.FarmerBotSettings.ContainerNames) // TODO: Get ContainerNames from compose.yaml
                 {
                     var containerResponse = containers.FirstOrDefault(c => c.Names.Contains($"/{lastDir}-{container}-1"));
 
@@ -255,7 +235,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
         {
             var processStartInfo = new ProcessStartInfo("docker", "compose ls")
             {
-                WorkingDirectory = _workingDirectory,
+                WorkingDirectory = _config.AppSetting.FarmerBotSettings.WorkingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
@@ -300,7 +280,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
         {
             var processStartInfo = new ProcessStartInfo("docker", "compose ps")
             {
-                WorkingDirectory = _workingDirectory,
+                WorkingDirectory = _config.AppSetting.FarmerBotSettings.WorkingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
@@ -342,9 +322,9 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
         public async Task<ServiceResponse<string>> GetComposeLogsAsync(CancellationToken cancellationToken)
         {
-            var processStartInfo = new ProcessStartInfo("docker", "compose logs -f")
+            var processStartInfo = new ProcessStartInfo("docker", _config.AppSetting.DockerSettings.DockerLogCommand)
             {
-                WorkingDirectory = _workingDirectory,
+                WorkingDirectory = _config.AppSetting.FarmerBotSettings.WorkingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };

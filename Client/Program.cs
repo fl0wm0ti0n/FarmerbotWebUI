@@ -13,6 +13,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<IFileService, FilesService>();
 builder.Services.AddScoped<IEventConsoleService, EventConsoleService>();
 builder.Services.AddScoped<IDockerService, DockerService>();

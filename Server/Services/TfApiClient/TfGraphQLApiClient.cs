@@ -12,20 +12,21 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
     public class TfGraphQLApiClient : ITfGraphQLApiClient
     {
         private readonly HttpClient _client;
-        private readonly IConfiguration _config;
-        private readonly int _NodeStatusInterval = 60; // TODO: get from config
+        private readonly ISettingsService _settingsService;
         private SemaphoreSlim _statusSemaphore = new SemaphoreSlim(1);
         private bool _lockInterval = false;
 
-        public TfGraphQLApiClient(HttpClient client, IConfiguration configuration)
+        public TfGraphQLApiClient(HttpClient client, ISettingsService settingsService)
         {
             _client = client;
-            _config = configuration;
-            StartStatusInterval();
+            _settingsService = settingsService;
         }
 
-        private void StartStatusInterval()
+        public async Task<ServiceResponse<Nodes>> StartStatusInterval()
         {
+            TaskCompletionSource<ServiceResponse<Nodes>> taskCompletionSource = new TaskCompletionSource<ServiceResponse<Nodes>>();
+            SemaphoreSlim firstExecutionSemaphore = new SemaphoreSlim(0, 1);
+
             Timer timer = new Timer(async (e) =>
             {
                 if (!_lockInterval)
@@ -33,20 +34,30 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
                     await _statusSemaphore.WaitAsync();
                     try
                     {
-                        var farmId = _config.GetValue<int>("ThreefoldFarmSedttings:FarmId");
-                        EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetGridNodeStatus, Source = EventSource.TfGraphQlApiClient, Typ = EventTyp.ServerJob};
+                        var farmId = _settingsService.AppSetting.ThreefoldFarmSettings.FarmId; //TODO: get FarmId from config.md
+                        EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetGridNodeStatus, Source = EventSource.TfGraphQlApiClient, Typ = EventTyp.ServerJob };
                         var nodeResponse = await GetNodesByFarmIdAsync(farmId);
-                        var farmResponse = await GetFarmDetailsAsync(farmId);
+                        //var farmResponse = await GetFarmDetailsAsync(farmId);
+
+                        // Setzen Sie das Ergebnis des TaskCompletionSource, wenn die Semaphore noch nicht freigegeben wurde
+                        if (firstExecutionSemaphore.CurrentCount == 0)
+                        {
+                            taskCompletionSource.SetResult(nodeResponse);
+                            firstExecutionSemaphore.Release();
+                        }
                     }
                     finally
                     {
                         _statusSemaphore.Release();
                     }
                 }
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_NodeStatusInterval));
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_settingsService.AppSetting.GeneralSettings.ServerUpdateInterval));
+
+            // Warten Sie auf das Ergebnis des TaskCompletionSource, bevor Sie die Antwort zurückgeben
+            return await taskCompletionSource.Task;
         }
 
-        public async Task<List<Node>> GetNodesByFarmIdAsync(int farmId)
+        public async Task<ServiceResponse<Nodes>> GetNodesByFarmIdAsync(int farmId)
         {
             var query = @"
                 query GetNodesByFarmId($farmId: Int!) {
@@ -113,24 +124,45 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
                 variables
             };
 
-            var content = new StringContent(JObject.FromObject(requestBody).ToString(), Encoding.UTF8, "application/json");
-
-            var response = await _client.PostAsync("https://graphql.qa.grid.tf/graphql", content);
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var result = await response.Content.ReadAsStringAsync();
-                var parsedResult = JsonConvert.DeserializeObject<Nodes>(result);
-                var nodes = parsedResult.Data.Nodes;
-                return nodes;
+                var content = new StringContent(JObject.FromObject(requestBody).ToString(), Encoding.UTF8, "application/json");
+                var response = await _client.PostAsync(_settingsService.AppSetting.ThreefoldApiSettings.GraphQl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    var nodes = JsonConvert.DeserializeObject<Nodes>(result);
+                    return new ServiceResponse<Nodes>
+                    {
+                        Data = nodes,
+                        Message = "Successfully retrieved nodes",
+                        Success = true
+                    };
+                }
+                else
+                {
+                    return new ServiceResponse<Nodes>
+                    {
+                        Data = new Nodes(),
+                        Message = $"Request failed with status code {(int)response.StatusCode}: {response.ReasonPhrase}",
+                        Success = false
+                    };
+                }
             }
-            else
+            catch (Exception ex)
             {
-                throw new HttpRequestException($"Request failed with status code {(int)response.StatusCode}: {response.ReasonPhrase}");
+                return new ServiceResponse<Nodes>
+                {
+                    Data = new Nodes(),
+                    Message = ex.Message,
+                    Success = false
+                };
             }
+
         }
 
-        public async Task<List<Farm>> GetFarmDetailsAsync(int farmId)
+        public async Task<ServiceResponse<Farms>> GetFarmDetailsAsync(int farmId)
         {
             var query = @"
                 query GetFarmsByFarmId($farmId: Int!) {
@@ -164,20 +196,40 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
                 variables
             };
 
-            var content = new StringContent(JObject.FromObject(requestBody).ToString(), Encoding.UTF8, "application/json");
-
-            var response = await _client.PostAsync("https://graphql.qa.grid.tf/graphql", content);
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var result = await response.Content.ReadAsStringAsync();
-                var parsedResult = JsonConvert.DeserializeObject<Farms>(result);
-                var farms = parsedResult.Data.Farms;
-                return farms;
+                var content = new StringContent(JObject.FromObject(requestBody).ToString(), Encoding.UTF8, "application/json");
+                var response = await _client.PostAsync(_settingsService.AppSetting.ThreefoldApiSettings.GraphQl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    var farms = JsonConvert.DeserializeObject<Farms>(result);
+                    return new ServiceResponse<Farms>
+                    {
+                        Data = farms,
+                        Message = "Successfully retrieved farm details",
+                        Success = true
+                    };
+                }
+                else
+                {
+                    return new ServiceResponse<Farms>
+                    {
+                        Data = new Farms(),
+                        Message = $"Request failed with status code {(int)response.StatusCode}: {response.ReasonPhrase}",
+                        Success = false
+                    };
+                }
             }
-            else
+            catch (Exception ex)
             {
-                throw new HttpRequestException($"Request failed with status code {(int)response.StatusCode}: {response.ReasonPhrase}");
+                return new ServiceResponse<Farms>
+                {
+                    Data = new Farms(),
+                    Message = ex.Message,
+                    Success = false
+                };
             }
         }
     }
