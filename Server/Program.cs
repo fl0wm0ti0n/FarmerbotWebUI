@@ -45,6 +45,12 @@ using (var scope = app.Services.CreateScope())
     await tfGraphQLApiClient.StartStatusInterval();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var settingsService = scope.ServiceProvider.GetRequiredService<ISettingsService>();
+    await settingsService.ReloadConfiguration();
+}
+
 app.UseSwaggerUI();
 
 // Configure the HTTP request pipeline.

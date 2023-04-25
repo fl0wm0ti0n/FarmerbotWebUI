@@ -1,6 +1,7 @@
 ﻿using Docker.DotNet;
 using Docker.DotNet.Models;
 using FarmerbotWebUI.Shared;
+using FarmerBotWebUI.Shared;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Diagnostics;
@@ -11,25 +12,15 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
 {
     public class FileService : IFileService
     {
-        private readonly IConfiguration _config;
-        private readonly string _workingDirectory;
-        private readonly string _dockerComposeFile;
-        private readonly string _threefoldConfigFile;
-        private readonly string _farmerBotConfigFile;
-        private readonly string _farmerBotLogFile;
+        private readonly IAppSettings _appSettings;
         private readonly DockerClientConfiguration _dockerConfig;
         private readonly string _endpoint;
         private readonly DockerClient _client;
         public FarmerBotStatus ActualFarmerBotStatus { get; private set; }
 
-        public FileService(IConfiguration configuration, CancellationToken cancellationToken)
+        public FileService(IAppSettings appSettings, CancellationToken cancellationToken)
         {
-            _config = configuration;
-            _workingDirectory = _config.GetValue<string>("FarmerBotSettings:WorkingDirectory");
-            _dockerComposeFile = _config.GetValue<string>("FarmerBotSettings:ComposeFile");
-            _threefoldConfigFile = _config.GetValue<string>("FarmerBotSettings:ThreefoldNetworkFile");
-            _farmerBotConfigFile = _config.GetValue<string>("FarmerBotSettings:FarmerBotConfigFile");
-            _farmerBotLogFile = _config.GetValue<string>("FarmerBotSettings:FarmerBotLogFile");
+            _appSettings = appSettings;
         }
 
         public async Task<ServiceResponse<string>> GetLocalLogAsync(string path, CancellationToken cancellationToken)
@@ -37,7 +28,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
             // If path is empty use workingdir + farmerbot.log
             if (path == string.Empty || string.IsNullOrWhiteSpace(path))
             {
-                path = $"{_workingDirectory}{Path.DirectorySeparatorChar}{_farmerBotLogFile}";
+                path = $"{_appSettings.FarmerBotSettings.WorkingDirectory}{Path.DirectorySeparatorChar}{_appSettings.FarmerBotSettings.FarmerBotLogFile}";
             }
 
             string error = "";
@@ -68,7 +59,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
             // If path is empty use workingdir + docker-compose.yaml
             if (path == string.Empty || string.IsNullOrWhiteSpace(path))
             {
-                path = $"{_workingDirectory}{Path.DirectorySeparatorChar}{_dockerComposeFile}";
+                path = $"{_appSettings.FarmerBotSettings.WorkingDirectory}{Path.DirectorySeparatorChar}{_appSettings.FarmerBotSettings.ComposeFile}";
             }
 
             string error = "";
@@ -99,7 +90,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
             // If path is empty use workingdir + docker-compose.yaml
             if (path == string.Empty || string.IsNullOrWhiteSpace(path))
             {
-                path = $"{_workingDirectory}{Path.DirectorySeparatorChar}{_dockerComposeFile}";
+                path = $"{_appSettings.FarmerBotSettings.WorkingDirectory}{Path.DirectorySeparatorChar}{_appSettings.FarmerBotSettings.ComposeFile}";
             }
 
             string error = "";
@@ -135,7 +126,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
             // If path is empty use workingdir + config.md
             if (path == string.Empty || string.IsNullOrWhiteSpace(path))
             {
-                path = $"{_workingDirectory}{Path.DirectorySeparatorChar}{_dockerConfig}";
+                path = $"{_appSettings.FarmerBotSettings.WorkingDirectory}{Path.DirectorySeparatorChar}{_appSettings.FarmerBotSettings.FarmerBotConfigFile}";
             }
 
             string error = "";
@@ -161,7 +152,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
             return response;
         }
 
-    public async Task<ServiceResponse<string>> SetMarkdownConfigAsync(FarmerBotConfig config, string path, CancellationToken cancellationToken)
+        public async Task<ServiceResponse<string>> SetMarkdownConfigAsync(FarmerBotConfig config, string path, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -171,7 +162,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
             // If path is empty use workingdir + config.md
             if (path == string.Empty || string.IsNullOrWhiteSpace(path))
             {
-                path = $"{_workingDirectory}{Path.DirectorySeparatorChar}{_dockerConfig}";
+                path = $"{_appSettings.FarmerBotSettings.WorkingDirectory}{Path.DirectorySeparatorChar}{_appSettings.FarmerBotSettings.FarmerBotConfigFile}";
             }
 
             string error = "";

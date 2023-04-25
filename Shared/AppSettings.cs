@@ -45,6 +45,18 @@ namespace FarmerBotWebUI.Shared
         {
             OnAppSettingsChanged?.Invoke(this, appSettings);
         }
+
+        public void SaveSettings(AppSettings appSettings)
+        {
+            AllowedHosts = appSettings.AllowedHosts;
+            GeneralSettings = appSettings.GeneralSettings;
+            DockerSettings = appSettings.DockerSettings;
+            FarmerBotSettings = appSettings.FarmerBotSettings;
+            ThreefoldFarmSettings = appSettings.ThreefoldFarmSettings;
+            ThreefoldApiSettings = appSettings.ThreefoldApiSettings;
+            SecuritySettings = appSettings.SecuritySettings;
+            NotificationSettings = appSettings.NotificationSettings;
+        }
     }
 
     public partial class DockerSettings

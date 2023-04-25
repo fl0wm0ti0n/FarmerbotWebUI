@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using System.Runtime.CompilerServices;
 using YamlDotNet.Core.Tokens;
 
 namespace FarmerbotWebUI.Server.Services.Settings
@@ -19,33 +20,36 @@ namespace FarmerbotWebUI.Server.Services.Settings
         {
             _configPath = "appsettings.json";
             _appSettings = appSettings;
-            try
-            {
-                ReadConfiguration();
-                // TODO: send to event service
-            }
-            catch (Exception ex)
-            {
-                // TODO: send to event service
-            }
+            //try
+            //{
+            //    ReadConfiguration();
+            //    // TODO: send to event service
+            //}
+            //catch (Exception ex)
+            //{
+            //    // TODO: send to event service
+            //}
         }
 
-        private void  ReadConfiguration()
+        private async Task ReadConfiguration()
         {
-            Configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile(_configPath, optional: false, reloadOnChange: true)
-            .Build();
-            _appSettings = Configuration.Get<AppSettings>();
-            AppSetting = Configuration.Get<AppSettings>();
-            _appSettings.InvokeOnAppSettingsChanged(AppSetting);
+            await Task.Run(() => {
+                Configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile(_configPath, optional: false, reloadOnChange: true)
+                .Build();
+                _appSettings.SaveSettings(Configuration.Get<AppSettings>());
+                //_appSettings = Configuration.Get<AppSettings>();
+                AppSetting = Configuration.Get<AppSettings>();
+                _appSettings.InvokeOnAppSettingsChanged(AppSetting);
+            });
         }
 
-        public ServiceResponse<IConfiguration> ReloadConfiguration()
+        public async Task<ServiceResponse<IConfiguration>> ReloadConfiguration()
         {
             try
             {
-                ReadConfiguration();
+                await ReadConfiguration();
                 return new ServiceResponse<IConfiguration>
                 {
                     Data = Configuration,
@@ -66,7 +70,7 @@ namespace FarmerbotWebUI.Server.Services.Settings
             }
         }
 
-        public ServiceResponse<string> UpdateConfiguration(string key, string value)
+        public async Task<ServiceResponse<string>> UpdateConfiguration(string key, string value)
         {
             try
             {

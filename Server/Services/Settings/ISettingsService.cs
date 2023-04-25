@@ -7,8 +7,8 @@ namespace FarmerbotWebUI.Server.Services.Settings
     {
         IConfiguration Configuration { get; set; }
         AppSettings AppSetting { get; }
-        ServiceResponse<IConfiguration> ReloadConfiguration();
-        ServiceResponse<string> UpdateConfiguration(string key, string value);
+        Task<ServiceResponse<IConfiguration>> ReloadConfiguration();
+        Task<ServiceResponse<string>> UpdateConfiguration(string key, string value);
         ServiceResponse<AppSettings> GetConfigurationObject();
         ServiceResponse<AppSettings> SetConfigurationObject(AppSettings appSettings);
     }

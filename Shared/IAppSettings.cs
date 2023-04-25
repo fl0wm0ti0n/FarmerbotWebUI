@@ -21,5 +21,6 @@ namespace FarmerBotWebUI.Shared
         NotificationSettings NotificationSettings { get; set; }
         event EventHandler<AppSettings> OnAppSettingsChanged;
         void InvokeOnAppSettingsChanged(AppSettings appSettings);
+        void SaveSettings(AppSettings appSettings);
     }
 }
