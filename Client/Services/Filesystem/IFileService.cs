@@ -4,16 +4,20 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
 {
     public interface IFileService
     {
-        Task<ServiceResponse<string>> GetLocalLogAsync(string path);
-        Task<ServiceResponse<FarmerBotConfig>> GetMarkdownConfigAsync(string path);
-        Task<ServiceResponse<string>> GetRawMarkdownConfigAsync(string path);
-        Task<ServiceResponse<string>> SetMarkdownConfigAsync(FarmerBotConfig config, string path);
-        Task<ServiceResponse<string>> SetMarkdownConfigAsync(string config, string path);
-        Task<ServiceResponse<string>> GetRawComposeFileAsync(string path);
-        Task<ServiceResponse<FarmerBotServices>> GetComposeFileAsync(string path);
-        Task<ServiceResponse<string>> SetComposeFileAsync(string compose, string path);
-        Task<ServiceResponse<string>> SetComposeFileAsync(FarmerBotServices compose, string path);
-        Task<ServiceResponse<string>> GetEnvFileAsync(string path);
-        Task<ServiceResponse<string>> SetEnvFileAsync(string env, string path);
+        Task<ServiceResponse<string>> GetLocalLogAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<string>> GetRawMarkdownConfigAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<FarmerBotConfig>> GetMarkdownConfigAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<string>> SetRawMarkdownConfigAsync(string config, string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<string>> SetMarkdownConfigAsync(FarmerBotConfig config, string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<string>> GetRawComposeFileAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<DockerCompose>> GetComposeFileAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<string>> SetRawComposeFileAsync(string compose, string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<string>> SetComposeFileAsync(DockerCompose compose, string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<string>> GetRawEnvFileAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<EnvFile>> GetEnvFileAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<string>> SetRawEnvFileAsync(string env, string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<string>> SetEnvFileAsync(EnvFile env, string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<FarmerBot>> GetFarmerBotAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<string>> SetFarmerBotAsync(FarmerBot bot, EventSourceActionId id, CancellationToken cancellationToken);
     }
 }

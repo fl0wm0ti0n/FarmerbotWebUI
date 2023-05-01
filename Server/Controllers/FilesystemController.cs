@@ -15,53 +15,117 @@ namespace FarmerbotWebUI.Server.Controllers
             _filesystemService = filesystemService;
         }
 
-        [HttpGet("log/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetLocalLogAsync(string path, CancellationToken cancellationToken)
+        #region Misc
+        [HttpGet("log/{botName}")]
+        public async Task<ActionResult<ServiceResponse<string>>> GetLocalLogAsync(string botName, CancellationToken cancellationToken)
         {
-            var output = await _filesystemService.GetLocalLogAsync(path, cancellationToken);
+            var output = await _filesystemService.GetLocalLogAsync(botName, cancellationToken);
+            return Ok(output);
+        }
+        #endregion Misc
+
+        #region Compose
+        [HttpGet("compose/getraw/{botName}")]
+        public async Task<ActionResult<ServiceResponse<string>>> GetRawComposeFileAsync(string botName, CancellationToken cancellationToken)
+        {
+            var output = await _filesystemService.GetRawComposeFileAsync(botName, cancellationToken);
             return Ok(output);
         }
 
-        [HttpPost("compose/get/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetComposeFileAsync(string path, CancellationToken cancellationToken)
+        [HttpGet("compose/get/{botName}")]
+        public async Task<ActionResult<ServiceResponse<DockerCompose>>> GetComposeFileAsync(string botName, CancellationToken cancellationToken)
         {
-            var output = await _filesystemService.GetComposeFileAsync(path, cancellationToken);
+            var output = await _filesystemService.GetComposeFileAsync(botName, cancellationToken);
             return Ok(output);
         }
 
-        [HttpPost("compose/set/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> SetComposeFileAsync([FromBody] string compose, string path, CancellationToken cancellationToken)
+        [HttpPost("compose/setraw/{botName}")]
+        public async Task<ActionResult<ServiceResponse<string>>> SetRawComposeFileAsync([FromBody] string compose, string botName, CancellationToken cancellationToken)
         {
-            var output = await _filesystemService.SetComposeFileAsync(compose, path, cancellationToken);
+            var output = await _filesystemService.SetRawComposeFileAsync(compose, botName, cancellationToken);
             return Ok(output);
         }
 
-        [HttpPost("markdown/get/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetMarkdownConfigAsync(string path, CancellationToken cancellationToken)
+        [HttpPost("compose/set/{botName}")]
+        public async Task<ActionResult<ServiceResponse<string>>> SetComposeFileAsync([FromBody] DockerCompose compose, string botName, CancellationToken cancellationToken)
         {
-            var output = await _filesystemService.GetMarkdownConfigAsync(path, cancellationToken);
+            var output = await _filesystemService.SetComposeFileAsync(compose, botName, cancellationToken);
+            return Ok(output);
+        }
+        #endregion Compose
+
+        #region Config
+        [HttpGet("markdown/getraw/{botName}")]
+        public async Task<ActionResult<ServiceResponse<string>>> GetRawMarkdownConfigAsync(string botName, CancellationToken cancellationToken)
+        {
+            var output = await _filesystemService.GetRawMarkdownConfigAsync(botName, cancellationToken);
             return Ok(output);
         }
 
-        [HttpPost("markdown/getraw/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetRawMarkdownConfigAsync(string path, CancellationToken cancellationToken)
+        [HttpGet("markdown/get/{botName}")]
+        public async Task<ActionResult<ServiceResponse<FarmerBotConfig>>> GetMarkdownConfigAsync(string botName, CancellationToken cancellationToken)
         {
-            var output = await _filesystemService.GetRawMarkdownConfigAsync(path, cancellationToken);
+            var output = await _filesystemService.GetMarkdownConfigAsync(botName, cancellationToken);
             return Ok(output);
         }
 
-        [HttpPost("markdown/set/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> SetMarkdownConfigAsync([FromBody] FarmerBotConfig compose, string path, CancellationToken cancellationToken)
+        [HttpPost("markdown/setraw/{botName}")]
+        public async Task<ActionResult<ServiceResponse<string>>> SetRawMarkdownConfigAsync([FromBody] string compose, string botName, CancellationToken cancellationToken)
         {
-            var output = await _filesystemService.SetMarkdownConfigAsync(compose, path, cancellationToken);
+            var output = await _filesystemService.SetRawMarkdownConfigAsync(compose, botName, cancellationToken);
             return Ok(output);
         }
 
-        [HttpPost("markdown/setraw/{path?}")]
-        public async Task<ActionResult<ServiceResponse<string>>> SetRawMarkdownConfigAsync([FromBody] string compose, string path, CancellationToken cancellationToken)
+        [HttpPost("markdown/set/{botName}")]
+        public async Task<ActionResult<ServiceResponse<string>>> SetMarkdownConfigAsync([FromBody] FarmerBotConfig compose, string botName, CancellationToken cancellationToken)
         {
-            var output = await _filesystemService.SetMarkdownConfigAsync(compose, path, cancellationToken);
+            var output = await _filesystemService.SetMarkdownConfigAsync(compose, botName, cancellationToken);
             return Ok(output);
         }
+        #endregion Config
+        #region Env
+        [HttpGet("env/getraw/{botName}")]
+        public async Task<ActionResult<ServiceResponse<string>>> GetRawEnvFileAsync(string botName, CancellationToken cancellationToken)
+        {
+            var output = await _filesystemService.GetRawEnvFileAsync(botName, cancellationToken);
+            return Ok(output);
+        }
+
+        [HttpGet("env/get/{botName}")]
+        public async Task<ActionResult<ServiceResponse<EnvFile>>> GetEnvFileAsync(string botName, CancellationToken cancellationToken)
+        {
+            var output = await _filesystemService.GetEnvFileAsync(botName, cancellationToken);
+            return Ok(output);
+        }
+
+        [HttpPost("env/setraw/{botName}")]
+        public async Task<ActionResult<ServiceResponse<string>>> SetRawEnvFileAsync([FromBody] string env, string botName, CancellationToken cancellationToken)
+        {
+            var output = await _filesystemService.SetRawEnvFileAsync(env, botName, cancellationToken);
+            return Ok(output);
+        }
+
+        [HttpPost("env/set/{botName}")]
+        public async Task<ActionResult<ServiceResponse<string>>> SetEnvFileAsync([FromBody] EnvFile env, string botName, CancellationToken cancellationToken)
+        {
+            var output = await _filesystemService.SetEnvFileAsync(env, botName, cancellationToken);
+            return Ok(output);
+        }
+        #endregion Env
+        #region FarmerBot
+        [HttpGet("bot/get/{botName}")]
+        public async Task<ActionResult<ServiceResponse<FarmerBot>>> GetFarmerBotAsync(string botName, CancellationToken cancellationToken)
+        {
+            var output = await _filesystemService.GetFarmerBotAsync(botName, cancellationToken);
+            return Ok(output);
+        }
+
+        [HttpPost("bot/set")]
+        public async Task<ActionResult<ServiceResponse<string>>> SetFarmerBotAsync([FromBody] FarmerBot bot, CancellationToken cancellationToken)
+        {
+            var output = await _filesystemService.SetFarmerBotAsync(bot, cancellationToken);
+            return Ok(output);
+        }
+        #endregion FarmerBot
     }
 }

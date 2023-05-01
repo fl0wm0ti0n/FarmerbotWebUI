@@ -15,8 +15,7 @@ namespace FarmerBotWebUI.Shared
         GeneralSettings GeneralSettings { get; set; }
         DockerSettings DockerSettings { get; set; }
         FarmerBotSettings FarmerBotSettings { get; set; }
-        ThreefoldFarmSettings ThreefoldFarmSettings { get; set; }
-        ThreefoldApiSettings ThreefoldApiSettings { get; set; }
+        List<ThreefoldApiSetting> ThreefoldApiSettings { get; set; }
         SecuritySettings SecuritySettings { get; set; }
         NotificationSettings NotificationSettings { get; set; }
         event EventHandler<AppSettings> OnAppSettingsChanged;

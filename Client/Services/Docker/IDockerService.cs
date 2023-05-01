@@ -8,11 +8,11 @@ namespace FarmerbotWebUI.Client.Services.Docker
         FarmerBotStatus ActualFarmerBotStatus { get; }
         Task<ServiceResponse<FarmerBotStatus>> StartStatusInterval();
         Task<bool> CancelOperation(EventAction command);
-        Task<ServiceResponse<FarmerBotStatus>> StartComposeAsync(EventSourceActionId id);
-        Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(EventSourceActionId id);
-        Task<ServiceResponse<string>> GetComposeProcessesAsync(EventSourceActionId id);
-        Task<ServiceResponse<string>> GetComposeListAsync(EventSourceActionId id);
-        Task<ServiceResponse<string>> GetComposeLogsAsync(EventSourceActionId id);
-        Task<ServiceResponse<FarmerBotStatus>> GetComposeStatusAsync(EventSourceActionId id);
+        Task<ServiceResponse<FarmerBotStatus>> StartComposeAsync(string botName, EventSourceActionId id);
+        Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(string botName, EventSourceActionId id);
+        Task<ServiceResponse<string>> GetComposeProcessesAsync(string botName, EventSourceActionId id);
+        Task<ServiceResponse<string>> GetComposeListAsync(string botName, EventSourceActionId id);
+        Task<ServiceResponse<string>> GetComposeLogsAsync(string botName, EventSourceActionId id);
+        Task<ServiceResponse<FarmerBotStatus>> GetComposeStatusAsync(string botName, EventSourceActionId id);
     }
 }

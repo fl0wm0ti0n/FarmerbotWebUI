@@ -4,39 +4,40 @@
 //
 //    using FarmerBotWebUI.Shared;
 //
-//    var appsettings = Appsettings.FromJson(jsonString);
-using System.Globalization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+//    var appSettings = AppSettings.FromJson(jsonString);
 
 namespace FarmerBotWebUI.Shared
 {
-    public class AppSettings : IAppSettings
+    using System;
+    using System.Collections.Generic;
+
+    using System.Globalization;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+
+    public partial class AppSettings : IAppSettings
     {
         [JsonProperty("AllowedHosts")]
-        public string AllowedHosts { get; set; } = "*";
+        public string AllowedHosts { get; set; }
 
         [JsonProperty("GeneralSettings")]
-        public GeneralSettings GeneralSettings { get; set; } = new GeneralSettings();
+        public GeneralSettings GeneralSettings { get; set; }
 
         [JsonProperty("DockerSettings")]
-        public DockerSettings DockerSettings { get; set; } = new DockerSettings();
+        public DockerSettings DockerSettings { get; set; }
 
         [JsonProperty("FarmerBotSettings")]
-        public FarmerBotSettings FarmerBotSettings { get; set; } = new FarmerBotSettings();
+        public FarmerBotSettings FarmerBotSettings { get; set; }
 
-        [JsonProperty("ThreefoldFarmSettings")]
-        public ThreefoldFarmSettings ThreefoldFarmSettings { get; set; } = new ThreefoldFarmSettings();
+        [JsonProperty("ThreefoldApiSettings")]
+        public List<ThreefoldApiSetting> ThreefoldApiSettings { get; set; }
 
-        [JsonProperty("ThreefoldApiSettings")] 
-        public ThreefoldApiSettings ThreefoldApiSettings { get; set; } = new ThreefoldApiSettings();
-
-        [JsonProperty("SecuritySettings")] 
-        public SecuritySettings SecuritySettings { get; set; } = new SecuritySettings();
+        [JsonProperty("SecuritySettings")]
+        public SecuritySettings SecuritySettings { get; set; }
 
         [JsonProperty("NotificationSettings")]
-        public NotificationSettings NotificationSettings { get; set; } = new NotificationSettings();
-        
+        public NotificationSettings NotificationSettings { get; set; }
+
         public static AppSettings FromJson(string json) => JsonConvert.DeserializeObject<AppSettings>(json, FarmerBotWebUI.Shared.Converter.Settings);
 
         public event EventHandler<AppSettings> OnAppSettingsChanged;
@@ -52,7 +53,6 @@ namespace FarmerBotWebUI.Shared
             GeneralSettings = appSettings.GeneralSettings;
             DockerSettings = appSettings.DockerSettings;
             FarmerBotSettings = appSettings.FarmerBotSettings;
-            ThreefoldFarmSettings = appSettings.ThreefoldFarmSettings;
             ThreefoldApiSettings = appSettings.ThreefoldApiSettings;
             SecuritySettings = appSettings.SecuritySettings;
             NotificationSettings = appSettings.NotificationSettings;
@@ -62,10 +62,10 @@ namespace FarmerBotWebUI.Shared
     public partial class DockerSettings
     {
         [JsonProperty("DockerEndpointWindows")]
-        public string DockerEndpointWindows { get; set; } = "";
+        public string DockerEndpointWindows { get; set; }
 
         [JsonProperty("DockerEndpointLinux")]
-        public string DockerEndpointLinux { get; set; } = "";
+        public string DockerEndpointLinux { get; set; }
 
         [JsonProperty("DockerRunCommand")]
         public string DockerRunCommand { get; set; }
@@ -79,6 +79,18 @@ namespace FarmerBotWebUI.Shared
 
     public partial class FarmerBotSettings
     {
+        [JsonProperty("FarmerBotStatusInterval")]
+        public int FarmerBotStatusInterval { get; set; }
+
+        [JsonProperty("Bots")]
+        public List<BotSetting> Bots { get; set; }
+    }
+
+    public partial class BotSetting
+    {
+        [JsonProperty("BotName")]
+        public string BotName { get; set; }
+
         [JsonProperty("WorkingDirectory")]
         public string WorkingDirectory { get; set; }
 
@@ -94,42 +106,9 @@ namespace FarmerBotWebUI.Shared
         [JsonProperty("FarmerBotLogFile")]
         public string FarmerBotLogFile { get; set; }
 
-        [JsonProperty("FarmerBotStatusInterval")]
-        public int FarmerBotStatusInterval { get; set; } = 60;
-
         [JsonProperty("ContainerNames")]
         public List<string> ContainerNames { get; set; }
-    }
 
-    public partial class GeneralSettings
-    {
-        [JsonProperty("CancelationTimeout")]
-        public int CancelationTimeout { get; set; } = 30000;
-
-        [JsonProperty("ServerUpdateInterval")]
-        public int ServerUpdateInterval { get; set; }
-    }
-
-    public partial class SecuritySettings
-    {
-        [JsonProperty("DontShowEnv")]
-        public bool DontShowEnv { get; set; }
-    }
-
-    public partial class ThreefoldApiSettings
-    {
-        [JsonProperty("GraphQl")]
-        public Uri GraphQl { get; set; }
-
-        [JsonProperty("GridProxy")]
-        public Uri GridProxy { get; set; }
-
-        [JsonProperty("ApiCallInterval")]
-        public long ApiCallInterval { get; set; }
-    }
-
-    public partial class ThreefoldFarmSettings
-    {
         [JsonProperty("FarmId")]
         public int FarmId { get; set; }
 
@@ -140,10 +119,40 @@ namespace FarmerBotWebUI.Shared
         public string NetworkRelay { get; set; }
     }
 
+    public partial class GeneralSettings
+    {
+        [JsonProperty("CancelationTimeout")]
+        public int CancelationTimeout { get; set; }
+
+        [JsonProperty("ServerUpdateInterval")]
+        public int ServerUpdateInterval { get; set; }
+    }
+
     public partial class NotificationSettings
     {
         [JsonProperty("GuiNotification")]
-        public bool GuiNotification { get; set; } = true;
+        public bool GuiNotification { get; set; }
+    }
+
+    public partial class SecuritySettings
+    {
+        [JsonProperty("DontShowEnv")]
+        public bool DontShowEnv { get; set; }
+    }
+
+    public partial class ThreefoldApiSetting
+    {
+        [JsonProperty("Net")]
+        public string Net { get; set; }
+
+        [JsonProperty("GraphQl")]
+        public Uri GraphQl { get; set; }
+
+        [JsonProperty("GridProxy")]
+        public Uri GridProxy { get; set; }
+
+        [JsonProperty("ApiCallInterval")]
+        public int ApiCallInterval { get; set; }
     }
 
     public static class Serialize

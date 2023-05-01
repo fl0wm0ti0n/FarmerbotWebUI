@@ -13,6 +13,8 @@ namespace FarmerbotWebUI.Shared
 {
     public class FarmerBotStatus
     {
+        public string Name { get; set; }
+        public int Id { get; set; }
         public List<ContainerListObject> Containers { get; set; } = new List<ContainerListObject>();
         public bool Status() => Containers.Any(c => c.Running == true);
         public bool ComposeOk { get; set; }

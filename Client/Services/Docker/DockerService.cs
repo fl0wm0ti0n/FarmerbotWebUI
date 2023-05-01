@@ -76,7 +76,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
             }
         }
 
-        public async Task<ServiceResponse<FarmerBotStatus>> StartComposeAsync(EventSourceActionId id)
+        public async Task<ServiceResponse<FarmerBotStatus>> StartComposeAsync(string botName, EventSourceActionId id)
         {
             var title = "Starting FarmerBot";
             var message = $"Starting FarmerBot...";
@@ -86,7 +86,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.CancelAfter(_appSettings.GeneralSettings.CancelationTimeout);
             CancellationTokens.Add(EventAction.FarmerBotStart, cancellationTokenSource);
-            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>>("api/docker/start", cancellationTokenSource.Token);
+            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>>($"api/docker/start/{botName}",  cancellationTokenSource.Token);
             CancellationTokens.Remove(EventAction.FarmerBotStart);
 
             if (response.Success && response.Data.Status())
@@ -111,7 +111,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
             return response;
         }
 
-        public async Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(EventSourceActionId id)
+        public async Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(string botName, EventSourceActionId id)
         {
             var title = "Stopping FarmerBot";
             var message = $"Stopping FarmerBot...";
@@ -121,7 +121,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.CancelAfter(_appSettings.GeneralSettings.CancelationTimeout);
             CancellationTokens.Add(EventAction.FarmerBotStop, cancellationTokenSource);
-            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>>("api/docker/stop", cancellationTokenSource.Token);
+            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>>($"api/docker/stop/{botName}", cancellationTokenSource.Token);
             CancellationTokens.Remove(EventAction.FarmerBotStop);
 
             if (response.Success && !response.Data.Status())
@@ -146,22 +146,22 @@ namespace FarmerbotWebUI.Client.Services.Docker
             return response;
         }
 
-        public async Task<ServiceResponse<string>> GetComposeListAsync(EventSourceActionId id)
+        public async Task<ServiceResponse<string>> GetComposeListAsync(string botName, EventSourceActionId id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<ServiceResponse<string>> GetComposeLogsAsync(EventSourceActionId id)
+        public async Task<ServiceResponse<string>> GetComposeLogsAsync(string botName, EventSourceActionId id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<ServiceResponse<string>> GetComposeProcessesAsync(EventSourceActionId id)
+        public async Task<ServiceResponse<string>> GetComposeProcessesAsync(string botName, EventSourceActionId id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<ServiceResponse<FarmerBotStatus>> GetComposeStatusAsync(EventSourceActionId id)
+        public async Task<ServiceResponse<FarmerBotStatus>> GetComposeStatusAsync(string botName, EventSourceActionId id)
         {
             var title = "Getting FarmerBot status";
             var message = $"Getting FarmerBot status...";
@@ -172,7 +172,7 @@ namespace FarmerbotWebUI.Client.Services.Docker
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.CancelAfter(_appSettings.GeneralSettings.CancelationTimeout);
             CancellationTokens.Add(EventAction.FarmerBotStatus, cancellationTokenSource);
-            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>>("api/docker/status", cancellationTokenSource.Token);
+            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBotStatus>>($"api/docker/status/{botName}", cancellationTokenSource.Token);
             CancellationTokens.Remove(EventAction.FarmerBotStatus);
             if (response.Success && response.Data.Status())
             {

@@ -9,12 +9,14 @@ namespace FarmerbotWebUI.Server.Services.Docker
     public class DockerService : IDockerService
     {
         private IAppSettings _appSettings;
-        public FarmerBotStatus ActualFarmerBotStatus { get; private set; } = new FarmerBotStatus { NoStatus = false };
-        public FarmerBotServices FarmerBotServices { get; private set; } = new FarmerBotServices();
+        private readonly IFileService _fileService;
+        public List<FarmerBotStatus> ActualFarmerBotStatus { get; private set; } = new List<FarmerBotStatus>();
+        //public FarmerBotServices FarmerBotServices { get; private set; } = new FarmerBotServices();
 
-        public DockerService(IAppSettings appSettings)
+        public DockerService(IAppSettings appSettings, IFileService fileService)
         {
             _appSettings = appSettings;
+            _fileService = fileService;
             _appSettings.OnAppSettingsChanged += UpdateAppSettings;
         }
 
@@ -39,11 +41,11 @@ namespace FarmerbotWebUI.Server.Services.Docker
             }
         }
 
-        public async Task<ServiceResponse<FarmerBotStatus>> StartComposeAsync(CancellationToken cancellationToken)
+        public async Task<ServiceResponse<FarmerBotStatus>> StartComposeAsync(string botName, CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", _appSettings.DockerSettings.DockerRunCommand)
             {
-                WorkingDirectory = _appSettings.FarmerBotSettings.WorkingDirectory,
+                WorkingDirectory = _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.BotName == botName).WorkingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
@@ -81,18 +83,18 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
             ServiceResponse<FarmerBotStatus> response = new ServiceResponse<FarmerBotStatus>
             {
-                Data = GetComposeStatusAsync(cancellationToken).Result.Data,
+                Data = GetComposeStatusAsync(botName, cancellationToken).Result.Data,
                 Message = error,
                 Success = exitCode > 0 ? false : true
             };
             return response;
         }
 
-        public async Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(CancellationToken cancellationToken)
+        public async Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(string botName, CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", _appSettings.DockerSettings.DockerDownCommand)
             {
-                WorkingDirectory = _appSettings.FarmerBotSettings.WorkingDirectory,
+                WorkingDirectory = _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.BotName == botName).WorkingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
@@ -131,14 +133,14 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
             ServiceResponse<FarmerBotStatus> response = new ServiceResponse<FarmerBotStatus>
             {
-                Data = GetComposeStatusAsync(cancellationToken).Result.Data,
+                Data = GetComposeStatusAsync(botName, cancellationToken).Result.Data,
                 Message = error,
                 Success = exitCode > 0 ? false : true
             };
             return response;
         }
 
-        public async Task<ServiceResponse<FarmerBotStatus>> GetComposeStatusAsync(CancellationToken cancellationToken)
+        public async Task<ServiceResponse<FarmerBotStatus>> GetComposeStatusAsync(string botName, CancellationToken cancellationToken)
         {
             string error = "";
             string output = "";
@@ -157,19 +159,32 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 error = ex.Message;
             }
 
-            string fullPath = Path.GetFullPath(_appSettings.FarmerBotSettings.WorkingDirectory).TrimEnd(Path.DirectorySeparatorChar);
+            string fullPath = Path.GetFullPath(_appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.BotName == botName).WorkingDirectory).TrimEnd(Path.DirectorySeparatorChar);
             string lastDir = fullPath.Split(Path.DirectorySeparatorChar).Last().ToLower();
+
+            FarmerBotStatus actualStatus = ActualFarmerBotStatus.FirstOrDefault(s => s.Name == botName);
+            if (actualStatus == null)
+            {
+                actualStatus = new FarmerBotStatus()
+                {
+                    Name = botName
+                };
+            }
+            else
+            {
+                ActualFarmerBotStatus.Remove(actualStatus);
+            }
 
             try
             {
                 var containers = await client.Containers.ListContainersAsync(new ContainersListParameters { All = true }, cancellationToken);
-                foreach (var container in _appSettings.FarmerBotSettings.ContainerNames) // TODO: Get ContainerNames from compose.yaml
+                foreach (var container in _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.BotName == botName).ContainerNames) // TODO: Get ContainerNames from compose.yaml
                 {
                     var containerResponse = containers.FirstOrDefault(c => c.Names.Contains($"/{lastDir}-{container}-1"));
 
                     if (containerResponse == null)
                     {
-                        ActualFarmerBotStatus.Containers.Add(new ContainerListObject()
+                        actualStatus.Containers.Add(new ContainerListObject()
                         {
                             Container = containerResponse,
                             Name = container,
@@ -183,7 +198,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
                     {
                         if (containerResponse.State == "running")
                         {
-                            ActualFarmerBotStatus.Containers.Add(new ContainerListObject()
+                            actualStatus.Containers.Add(new ContainerListObject()
                             {
                                 Container = containerResponse,
                                 Name = container,
@@ -195,7 +210,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
                         }
                         else
                         {
-                            ActualFarmerBotStatus.Containers.Add(new ContainerListObject()
+                            actualStatus.Containers.Add(new ContainerListObject()
                             {
                                 Container = containerResponse,
                                 Name = container,
@@ -212,37 +227,40 @@ namespace FarmerbotWebUI.Server.Services.Docker
             {
                 exitCode = 1;
                 error = ex.Message;
-                ActualFarmerBotStatus.NoStatus = true;
+                actualStatus.NoStatus = true;
             }
 
-            if (ActualFarmerBotStatus.Status())
+            if (actualStatus.Status())
             {
-                ActualFarmerBotStatus.ComposeOk = true;
-                ActualFarmerBotStatus.EnvOk = true;
-                ActualFarmerBotStatus.ConfigOk = true;
+                actualStatus.ComposeOk = true;
+                actualStatus.EnvOk = true;
+                actualStatus.ConfigOk = true;
             }
-            ActualFarmerBotStatus.LastUpdate = DateTime.UtcNow;
+            actualStatus.LastUpdate = DateTime.UtcNow;
 
             if (cancellationToken.IsCancellationRequested)
             {
                 error = "Canceled";
                 exitCode = 1;
-                ActualFarmerBotStatus.NoStatus = true;
+                actualStatus.NoStatus = true;
             }
+
+            ActualFarmerBotStatus.Add(actualStatus);
+
             ServiceResponse<FarmerBotStatus> response = new ServiceResponse<FarmerBotStatus>
             {
-                Data = ActualFarmerBotStatus,
+                Data = actualStatus,
                 Message = error,
                 Success = exitCode > 0 ? false : true
             };
             return response;
         }
 
-        public async Task<ServiceResponse<string>> GetComposeListAsync(CancellationToken cancellationToken)
+        public async Task<ServiceResponse<string>> GetComposeListAsync(string botName, CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", "compose ls")
             {
-                WorkingDirectory = _appSettings.FarmerBotSettings.WorkingDirectory,
+                WorkingDirectory = _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.BotName == botName).WorkingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
@@ -283,11 +301,11 @@ namespace FarmerbotWebUI.Server.Services.Docker
             return response;
         }
 
-        public async Task<ServiceResponse<string>> GetComposeProcessesAsync(CancellationToken cancellationToken)
+        public async Task<ServiceResponse<string>> GetComposeProcessesAsync(string botName, CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", "compose ps")
             {
-                WorkingDirectory = _appSettings.FarmerBotSettings.WorkingDirectory,
+                WorkingDirectory = _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.BotName == botName).WorkingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
@@ -327,11 +345,11 @@ namespace FarmerbotWebUI.Server.Services.Docker
             return response;
         }
 
-        public async Task<ServiceResponse<string>> GetComposeLogsAsync(CancellationToken cancellationToken)
+        public async Task<ServiceResponse<string>> GetComposeLogsAsync(string botName, CancellationToken cancellationToken)
         {
             var processStartInfo = new ProcessStartInfo("docker", _appSettings.DockerSettings.DockerLogCommand)
             {
-                WorkingDirectory = _appSettings.FarmerBotSettings.WorkingDirectory,
+                WorkingDirectory = _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.BotName == botName).WorkingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
@@ -370,9 +388,44 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
             return response;
         }
+
+        public async Task<ServiceResponse<List<FarmerBotStatus>>> GetComposeStatusListAsync(CancellationToken cancellationToken)
+        {
+            List<FarmerBotStatus> stati = new List<FarmerBotStatus>();
+            string error = "";
+
+            foreach (var bot in _appSettings.FarmerBotSettings.Bots)
+            {
+                if (!ActualFarmerBotStatus.Contains(ActualFarmerBotStatus.Find(s => s.Name == bot.BotName)))
+                {
+                    //TODO: Settings unsync Error 
+                }
+                else
+                {
+                    var status = await GetComposeStatusAsync(bot.BotName, cancellationToken);
+                    if (!status.Success || !status.Data.Status()) 
+                    {
+                        error += $"FarmerBot {status.Data.Name} error: \n";
+                        error += $"{status.Message}\n";
+                    }
+                    stati.Add(status.Data);
+                }
+            }
+
+            ServiceResponse<List<FarmerBotStatus>> response = new ServiceResponse<List<FarmerBotStatus>>
+            {
+                Data = stati,
+                Message = error,
+                Success = string.IsNullOrWhiteSpace(error)
+            };
+
+            return response;
+        }
+
         public void Dispose()
         {
             _appSettings.OnAppSettingsChanged -= UpdateAppSettings;
         }
+
     }
 }

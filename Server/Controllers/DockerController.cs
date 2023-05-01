@@ -16,45 +16,45 @@ namespace FarmerbotWebUI.Server.Controllers
             _dockerService = dockerService;
         }
 
-        [HttpGet("start")]
-        public async Task<ActionResult<ServiceResponse<FarmerBotStatus>>> StartComposeAsync(CancellationToken cancellationToken)
+        [HttpGet("start/{botName}")]
+        public async Task<ActionResult<ServiceResponse<FarmerBotStatus>>> StartComposeAsync(string botName, CancellationToken cancellationToken)
         {
-            var output = await _dockerService.StartComposeAsync(cancellationToken);
+            var output = await _dockerService.StartComposeAsync(botName, cancellationToken);
             return Ok(output);
         }
 
-        [HttpGet("stop")]
-        public async Task<ActionResult<ServiceResponse<FarmerBotStatus>>> StopComposeAsync(CancellationToken cancellationToken)
+        [HttpGet("stop/{botName}")]
+        public async Task<ActionResult<ServiceResponse<FarmerBotStatus>>> StopComposeAsync(string botName, CancellationToken cancellationToken)
         {
-            var output = await _dockerService.StopComposeAsync(cancellationToken);
+            var output = await _dockerService.StopComposeAsync(botName, cancellationToken);
+            return Ok(output);
+        }
+
+        [HttpGet("status/{botName}")]
+        public async Task<ActionResult<ServiceResponse<FarmerBotStatus>>> GetComposeStatusAsync(string botName, CancellationToken cancellationToken)
+        {
+            var output = await _dockerService.GetComposeStatusAsync(botName, cancellationToken);
             return Ok(output);
         }
 
         [HttpGet("ps")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetComposeProcessesAsync(CancellationToken cancellationToken)
+        public async Task<ActionResult<ServiceResponse<string>>> GetComposeProcessesAsync(string botName, CancellationToken cancellationToken)
         {
-            var output = await _dockerService.GetComposeProcessesAsync(cancellationToken);
+            var output = await _dockerService.GetComposeProcessesAsync(botName, cancellationToken);
             return Ok(output);
         }
 
         [HttpGet("ls")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetComposeListAsync(CancellationToken cancellationToken)
+        public async Task<ActionResult<ServiceResponse<string>>> GetComposeListAsync(string botName, CancellationToken cancellationToken)
         {
-            var output = await _dockerService.GetComposeListAsync(cancellationToken);
+            var output = await _dockerService.GetComposeListAsync(botName, cancellationToken);
             return Ok(output);
         }
 
         [HttpGet("livelog")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetComposeLogsAsync(CancellationToken cancellationToken)
+        public async Task<ActionResult<ServiceResponse<string>>> GetComposeLogsAsync(string botName, CancellationToken cancellationToken)
         {
-            var output = await _dockerService.GetComposeLogsAsync(cancellationToken);
-            return Ok(output);
-        }
-
-        [HttpGet("status")]
-        public async Task<ActionResult<ServiceResponse<FarmerBotStatus>>> GetComposeStatusAsync(CancellationToken cancellationToken)
-        {
-            var output = await _dockerService.GetComposeStatusAsync(cancellationToken);
+            var output = await _dockerService.GetComposeLogsAsync(botName, cancellationToken);
             return Ok(output);
         }
     }
