@@ -124,7 +124,6 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
             var GuiAndProgress = id.Typ == EventTyp.UserAction ? true : false;
             id = _eventConsole.AddMessage(id, title, message, GuiAndProgress, false, GuiAndProgress, LogLevel.Information, EventResult.Valueless);
 
-            _lockInterval = true;
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<AppSettings>>("api/settings/getsettings");
             if (response.Success)
             {

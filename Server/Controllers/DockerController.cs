@@ -37,6 +37,13 @@ namespace FarmerbotWebUI.Server.Controllers
             return Ok(output);
         }
 
+        [HttpGet("status")]
+        public async Task<ActionResult<ServiceResponse<List<FarmerBotStatus>>>> GetComposeStatusListAsync(CancellationToken cancellationToken)
+        {
+            var output = await _dockerService.GetComposeStatusListAsync(cancellationToken);
+            return Ok(output);
+        }
+
         [HttpGet("ps")]
         public async Task<ActionResult<ServiceResponse<string>>> GetComposeProcessesAsync(string botName, CancellationToken cancellationToken)
         {

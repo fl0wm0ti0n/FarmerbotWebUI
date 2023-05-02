@@ -1,26 +1,10 @@
-﻿using Docker.DotNet;
-using Docker.DotNet.Models;
-using FarmerbotWebUI.Shared;
-using FarmerBotWebUI.Shared;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using YamlDotNet.Serialization.NamingConventions;
-using YamlDotNet.Serialization;
+﻿using FarmerBotWebUI.Shared;
 
 namespace FarmerbotWebUI.Server.Services.Filesystem
 {
     public class FileService : IFileService
     {
         private readonly IAppSettings _appSettings;
-        private readonly DockerClientConfiguration _dockerConfig;
-        private readonly string _endpoint;
-        private readonly DockerClient _client;
-        public FarmerBotStatus ActualFarmerBotStatus { get; private set; }
 
         public FileService(IAppSettings appSettings, CancellationToken cancellationToken)
         {

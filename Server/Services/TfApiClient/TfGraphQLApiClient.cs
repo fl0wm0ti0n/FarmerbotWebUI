@@ -1,10 +1,13 @@
-﻿using System.Net.Http;
+﻿using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FarmerbotWebUI.Client.Services.EventConsole;
 using FarmerBotWebUI.Shared;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using YamlDotNet.Core.Tokens;
 
 
 namespace FarmerbotWebUI.Server.Services.TfApiClient
@@ -28,9 +31,9 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             _appSettings = newAppSettings;
         }
 
-        public async Task<ServiceResponse<Nodes>> StartStatusInterval()
+        public async Task<ServiceResponse<List<Nodes>>> StartStatusInterval()
         {
-            TaskCompletionSource<ServiceResponse<Nodes>> taskCompletionSource = new TaskCompletionSource<ServiceResponse<Nodes>>();
+            TaskCompletionSource<ServiceResponse<List<Nodes>>> taskCompletionSource = new TaskCompletionSource<ServiceResponse<List<Nodes>>>();
             SemaphoreSlim firstExecutionSemaphore = new SemaphoreSlim(0, 1);
 
             Timer timer = new Timer(async (e) =>
@@ -40,9 +43,8 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
                     await _statusSemaphore.WaitAsync();
                     try
                     {
-                        var farmId = _appSettings.ThreefoldFarmSettings.FarmId; //TODO: get FarmId from config.md
                         EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetGridNodeStatus, Source = EventSource.TfGraphQlApiClient, Typ = EventTyp.ServerJob };
-                        var nodeResponse = await GetNodesByFarmIdAsync(farmId);
+                        var nodeResponse = await GetNodesListAsync();
                         //var farmResponse = await GetFarmDetailsAsync(farmId);
 
                         // Setzen Sie das Ergebnis des TaskCompletionSource, wenn die Semaphore noch nicht freigegeben wurde
@@ -61,6 +63,30 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
 
             // Warten Sie auf das Ergebnis des TaskCompletionSource, bevor Sie die Antwort zurückgeben
             return await taskCompletionSource.Task;
+        }
+
+        public async Task<ServiceResponse<List<Nodes>>> GetNodesListAsync()
+        {
+            string error = "";
+            List<Nodes> nodes = new List<Nodes>();
+
+            foreach (var bot in _appSettings.FarmerBotSettings.Bots)
+            {
+                var node = await GetNodesByFarmIdAsync(bot.FarmId);
+                if (!node.Success)
+                {
+                    error += $"Nodes From FarmerBot {bot.BotName} error: \n";
+                    error += $"{node.Message}\n";
+                }
+                nodes.Add(node.Data);
+            }
+
+            return new ServiceResponse<List<Nodes>>
+            {
+                Data = nodes,
+                Message = error,
+                Success = false
+            };
         }
 
         public async Task<ServiceResponse<Nodes>> GetNodesByFarmIdAsync(int farmId)
@@ -133,7 +159,8 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             try
             {
                 var content = new StringContent(JObject.FromObject(requestBody).ToString(), Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync(_appSettings.ThreefoldApiSettings.GraphQl, content);
+                var url = _appSettings.ThreefoldApiSettings.FirstOrDefault(g => g.Net == _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.FarmId == farmId).Network).GraphQl;
+                var response = await _client.PostAsync(url, content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -205,7 +232,8 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             try
             {
                 var content = new StringContent(JObject.FromObject(requestBody).ToString(), Encoding.UTF8, "application/json");
-                var response = await _client.PostAsync(_appSettings.ThreefoldApiSettings.GraphQl, content);
+                var url = _appSettings.ThreefoldApiSettings.FirstOrDefault(g => g.Net == _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.FarmId == farmId).Network).GraphQl;
+                var response = await _client.PostAsync(url, content);
 
                 if (response.IsSuccessStatusCode)
                 {

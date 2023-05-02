@@ -11,7 +11,6 @@ namespace FarmerbotWebUI.Server.Services.Docker
         private IAppSettings _appSettings;
         private readonly IFileService _fileService;
         public List<FarmerBotStatus> ActualFarmerBotStatus { get; private set; } = new List<FarmerBotStatus>();
-        //public FarmerBotServices FarmerBotServices { get; private set; } = new FarmerBotServices();
 
         public DockerService(IAppSettings appSettings, IFileService fileService)
         {
@@ -81,13 +80,12 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 exitCode = 1;
             }
 
-            ServiceResponse<FarmerBotStatus> response = new ServiceResponse<FarmerBotStatus>
+            return new ServiceResponse<FarmerBotStatus>
             {
                 Data = GetComposeStatusAsync(botName, cancellationToken).Result.Data,
                 Message = error,
                 Success = exitCode > 0 ? false : true
             };
-            return response;
         }
 
         public async Task<ServiceResponse<FarmerBotStatus>> StopComposeAsync(string botName, CancellationToken cancellationToken)
@@ -131,13 +129,12 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 exitCode = 1;
             }
 
-            ServiceResponse<FarmerBotStatus> response = new ServiceResponse<FarmerBotStatus>
+            return new ServiceResponse<FarmerBotStatus>
             {
                 Data = GetComposeStatusAsync(botName, cancellationToken).Result.Data,
                 Message = error,
                 Success = exitCode > 0 ? false : true
             };
-            return response;
         }
 
         public async Task<ServiceResponse<FarmerBotStatus>> GetComposeStatusAsync(string botName, CancellationToken cancellationToken)
@@ -247,13 +244,12 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
             ActualFarmerBotStatus.Add(actualStatus);
 
-            ServiceResponse<FarmerBotStatus> response = new ServiceResponse<FarmerBotStatus>
+            return new ServiceResponse<FarmerBotStatus>
             {
                 Data = actualStatus,
                 Message = error,
                 Success = exitCode > 0 ? false : true
             };
-            return response;
         }
 
         public async Task<ServiceResponse<string>> GetComposeListAsync(string botName, CancellationToken cancellationToken)
@@ -291,14 +287,12 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 exitCode = 1;
             }
 
-            ServiceResponse<string> response = new ServiceResponse<string>
+            return new ServiceResponse<string>
             {
                 Data = output,
                 Message = error,
                 Success = exitCode > 0 ? false : true
             };
-
-            return response;
         }
 
         public async Task<ServiceResponse<string>> GetComposeProcessesAsync(string botName, CancellationToken cancellationToken)
@@ -335,14 +329,12 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 exitCode = 1;
             }
 
-            ServiceResponse<string> response = new ServiceResponse<string>
+            return new ServiceResponse<string>
             {
                 Data = output,
                 Message = error,
                 Success = string.IsNullOrWhiteSpace(error)
             };
-
-            return response;
         }
 
         public async Task<ServiceResponse<string>> GetComposeLogsAsync(string botName, CancellationToken cancellationToken)
@@ -379,14 +371,12 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 exitCode = 1;
             }
 
-            ServiceResponse<string> response = new ServiceResponse<string>
+            return new ServiceResponse<string>
             {
                 Data = output,
                 Message = error,
                 Success = string.IsNullOrWhiteSpace(error)
             };
-
-            return response;
         }
 
         public async Task<ServiceResponse<List<FarmerBotStatus>>> GetComposeStatusListAsync(CancellationToken cancellationToken)
@@ -412,14 +402,12 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 }
             }
 
-            ServiceResponse<List<FarmerBotStatus>> response = new ServiceResponse<List<FarmerBotStatus>>
+            return new ServiceResponse<List<FarmerBotStatus>>
             {
                 Data = stati,
                 Message = error,
                 Success = string.IsNullOrWhiteSpace(error)
             };
-
-            return response;
         }
 
         public void Dispose()

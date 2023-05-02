@@ -47,6 +47,7 @@ public enum EventSource
         FarmerBotStart,
         FarmerBotStop,
         FarmerBotStatus,
+        FarmerBotStatusList,
         FarmerBotPs,
         FarmerBotLs,
         FarmerBotLivelog,
