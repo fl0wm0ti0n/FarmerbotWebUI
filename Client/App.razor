@@ -35,12 +35,13 @@
         bool settingsLoaded = false;
         while (currentRetry < maxRetries && !settingsLoaded)
         {
-            currentRetry++;
-            var response = await SettingsService.StartStatusInterval();
+            EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetSettings, Source = EventSource.Startup, Typ = EventTyp.ClientJob };
+            var response = await SettingsService.GetConfigurationObject(eventSourceActionId);
             if (response.Success)
             {
                 AppSettings = response.Data;
                 settingsLoaded = true;
+                _ = await SettingsService.StartStatusInterval();
                 await InitializeDocker();
             }
             else

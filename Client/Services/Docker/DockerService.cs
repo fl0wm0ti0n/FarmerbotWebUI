@@ -240,22 +240,20 @@ namespace FarmerbotWebUI.Client.Services.Docker
             CancellationTokens.Remove(EventAction.FarmerBotStatusList);
 
             // Response Error handling
-            if (response.Success)
+            foreach (var item in response.Data)
             {
-                foreach (var item in response.Data)
+                if (item.Status())
                 {
-                    if (item.Status())
-                    {
-                        ActualFarmerBotStatus.Remove(ActualFarmerBotStatus.Find(s => s.Name == item.Name));
-                        ActualFarmerBotStatus.Add(item);
-                        _eventConsole.UpdateMessage(id, title, response.Message, false, true, GuiAndProgress, LogLevel.Information, EventResult.Successfully);
-                    }
-                    else if (!response.Success)
-                    {
-                        ActualFarmerBotStatus.Remove(ActualFarmerBotStatus.Find(s => s.Name == item.Name));
-                        message = $"Error getting FarmerBot status list...\n{response.Message}";
-                        _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
-                    }
+                    ActualFarmerBotStatus.Remove(ActualFarmerBotStatus.Find(s => s.Name == item.Name));
+                    ActualFarmerBotStatus.Add(item);
+                    _eventConsole.UpdateMessage(id, title, response.Message, false, true, GuiAndProgress, LogLevel.Information, EventResult.Successfully);
+                }
+                else if (!response.Success)
+                {
+                    ActualFarmerBotStatus.Remove(ActualFarmerBotStatus.Find(s => s.Name == item.Name));
+                    ActualFarmerBotStatus.Add(item);
+                    message = $"Error getting FarmerBot status list...\n{response.Message}";
+                    _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
                 }
             }
 

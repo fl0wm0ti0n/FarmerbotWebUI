@@ -1,5 +1,6 @@
 ﻿@page "/dashboard"
-
+@using FarmerBotWebUI.Shared;
+@inject IAppSettings AppSettings
 @inject IEventConsoleService EventConsoleService
 @inject IDockerService DockerService
 @inject IJSRuntime JSRuntime
@@ -14,20 +15,26 @@
         <RadzenSplitter Orientation="Orientation.Vertical" Collapse=@OnCollapse Expand=@OnExpand>
             @*### top left - On/off and farmerbot status section*@
             <RadzenSplitterPane Size="30%" Min="25%" Max="60%" Style="padding: 20px; background-color: rgb(137, 174, 192); display: flex; justify-content: left; align-items: left;">
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
+                @foreach (var botStatus in DockerService.ActualFarmerBotStatus)
+                {
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
                         <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.NoWrap">
-                            <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(StartDockerComposeAsync) BusyText="Doing ..." IsBusy=@busy Text="Start Farmerbot" ButtonStyle="ButtonStyle.Success" Disabled="@(!startButton)" />
-                        <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(StopDockerComposeAsync) BusyText="Doing ..." IsBusy=@busy Text="Stop Farmerbot" ButtonStyle="ButtonStyle.Danger" Disabled="@(startButton)" />
-                        <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(UpdateDockerComposeAsync) BusyText="Doing ..." IsBusy=@busy Text="Update Status" ButtonStyle="ButtonStyle.Secondary" />
+                            <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => StartDockerComposeAsync(botStatus.Name)) BusyText="Doing ..." IsBusy=@busy Text="Start Farmerbot" ButtonStyle="ButtonStyle.Success" Disabled="@(botStatus.Status())" />
+                            <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => StopDockerComposeAsync(botStatus.Name)) BusyText="Doing ..." IsBusy=@busy Text="Stop Farmerbot" ButtonStyle="ButtonStyle.Danger" Disabled="@(!botStatus.Status())" />
+                            <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(UpdateDockerComposeAsync) BusyText="Doing ..." IsBusy=@busy Text="Update Status" ButtonStyle="ButtonStyle.Secondary" />
                         </RadzenStack>
                         <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.NoWrap">
-                            <FarmerBotStatusPage />
+                            <FarmerBotStatusPage botStatus=@botStatus />
                         </RadzenStack>
-                </RadzenStack>
+                    </RadzenStack>
+                }
             </RadzenSplitterPane>
             @*### bottom left - no idea by now section*@
             <RadzenSplitterPane style="padding: 20px; background-color: rgb(137, 174, 192); display: flex; justify-content: left; align-items: left; ">
-                <SetupStatusPage />
+                @foreach (var botStatus in DockerService.ActualFarmerBotStatus)
+                {
+                    <SetupStatusPage botStatus=@botStatus />
+                }
             </RadzenSplitterPane>
         </RadzenSplitter>
     </RadzenSplitterPane>
@@ -44,39 +51,39 @@
 </RadzenSplitter>
 
 @code {
-    private ServiceResponse<FarmerBotStatus>? Response { get; set; } = new ServiceResponse<FarmerBotStatus>();
+    private ServiceResponse<List<FarmerBotStatus>>? Response { get; set; } = new ServiceResponse<List<FarmerBotStatus>>();
     private bool startButton = false;
     //private bool stopButton = false;
     private bool busy = false;
 
     protected override void OnAfterRender(bool firstRender){
-        if (DockerService.ActualFarmerBotStatus != null)
-        {
-            if (!DockerService.ActualFarmerBotStatus.Status())
-            {
-                startButton = true;
-            }
-            else
-            {
-                startButton = false;
-            }
-        }
+        //if (DockerService.ActualFarmerBotStatus != null)
+        //{
+        //    if (!DockerService.ActualFarmerBotStatus.Status())
+        //    {
+        //        startButton = true;
+        //    }
+        //    else
+        //    {
+        //        startButton = false;
+        //    }
+        //}
     }
 
     protected override void OnInitialized()
     {
-        if (DockerService.ActualFarmerBotStatus != null)
-        {
-            if (!DockerService.ActualFarmerBotStatus.Status())
-            {
-                startButton = true;
-            }
-            else
-            {
-                startButton = false;
-            }
-            StateHasChanged();
-        }
+        //if (DockerService.ActualFarmerBotStatus != null)
+        //{
+        //    if (!DockerService.ActualFarmerBotStatus.Status())
+        //    {
+        //        startButton = true;
+        //    }
+        //    else
+        //    {
+        //        startButton = false;
+        //    }
+        //    StateHasChanged();
+        //}
         DockerService.StatusChanged += StateHasChanged;
     }
 
@@ -86,29 +93,33 @@
         busy = true;
         StateHasChanged();
 
-        Response = await DockerService.GetComposeStatusAsync(eventSourceActionId);
+        Response = await DockerService.GetComposeStatusListAsync(eventSourceActionId);
         busy = false;
         StateHasChanged();
     }
 
-    private async Task StartDockerComposeAsync()
+    private async Task StartDockerComposeAsync(string botName)
     {
         EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.FarmerBotStart, Source = EventSource.Dashboard, Typ = EventTyp.UserAction };
         busy = true;
         StateHasChanged();
 
-        Response = await DockerService.StartComposeAsync(eventSourceActionId);
+        Response.Data.Remove(Response.Data.FirstOrDefault(r => r.Name == botName));
+        var data = await DockerService.StartComposeAsync(botName, eventSourceActionId);
+        Response.Data.Add(data.Data);
         busy = false;
         StateHasChanged();
     }
 
-    private async Task StopDockerComposeAsync()
+    private async Task StopDockerComposeAsync(string botName)
     {
         EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.FarmerBotStop, Source = EventSource.Dashboard, Typ = EventTyp.UserAction };
         busy = true;
         StateHasChanged();
 
-        Response = await DockerService.StopComposeAsync(eventSourceActionId);
+        Response.Data.Remove(Response.Data.FirstOrDefault(r => r.Name == botName));
+        var data = await DockerService.StopComposeAsync(botName, eventSourceActionId);
+        Response.Data.Add(data.Data);
         busy = false;
         StateHasChanged();
     }

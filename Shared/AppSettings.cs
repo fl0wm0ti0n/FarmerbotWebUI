@@ -21,22 +21,22 @@ namespace FarmerBotWebUI.Shared
         public string AllowedHosts { get; set; }
 
         [JsonProperty("GeneralSettings")]
-        public GeneralSettings GeneralSettings { get; set; }
+        public GeneralSettings GeneralSettings { get; set; } = new GeneralSettings();
 
         [JsonProperty("DockerSettings")]
-        public DockerSettings DockerSettings { get; set; }
+        public DockerSettings DockerSettings { get; set; } = new DockerSettings();
 
         [JsonProperty("FarmerBotSettings")]
-        public FarmerBotSettings FarmerBotSettings { get; set; }
+        public FarmerBotSettings FarmerBotSettings { get; set; } = new FarmerBotSettings();
 
         [JsonProperty("ThreefoldApiSettings")]
-        public List<ThreefoldApiSetting> ThreefoldApiSettings { get; set; }
+        public List<ThreefoldApiSetting> ThreefoldApiSettings { get; set; } = new List<ThreefoldApiSetting>();
 
-        [JsonProperty("SecuritySettings")]
-        public SecuritySettings SecuritySettings { get; set; }
+        [JsonProperty("SecuritySettings")] 
+        public SecuritySettings SecuritySettings { get; set; } = new SecuritySettings(); 
 
         [JsonProperty("NotificationSettings")]
-        public NotificationSettings NotificationSettings { get; set; }
+        public NotificationSettings NotificationSettings { get; set; } = new NotificationSettings();
 
         public static AppSettings FromJson(string json) => JsonConvert.DeserializeObject<AppSettings>(json, FarmerBotWebUI.Shared.Converter.Settings);
 
@@ -80,7 +80,7 @@ namespace FarmerBotWebUI.Shared
     public partial class FarmerBotSettings
     {
         [JsonProperty("FarmerBotStatusInterval")]
-        public int FarmerBotStatusInterval { get; set; }
+        public int FarmerBotStatusInterval { get; set; } = 60;
 
         [JsonProperty("Bots")]
         public List<BotSetting> Bots { get; set; }
@@ -122,16 +122,16 @@ namespace FarmerBotWebUI.Shared
     public partial class GeneralSettings
     {
         [JsonProperty("CancelationTimeout")]
-        public int CancelationTimeout { get; set; }
+        public int CancelationTimeout { get; set; } = 30000;
 
         [JsonProperty("ServerUpdateInterval")]
-        public int ServerUpdateInterval { get; set; }
+        public int ServerUpdateInterval { get; set; } = 60;
     }
 
     public partial class NotificationSettings
     {
         [JsonProperty("GuiNotification")]
-        public bool GuiNotification { get; set; }
+        public bool GuiNotification { get; set; } = false;
     }
 
     public partial class SecuritySettings

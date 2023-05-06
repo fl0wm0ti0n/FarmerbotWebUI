@@ -15,8 +15,6 @@ builder.Services.AddRazorPages();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
-//builder.Services.AddSingleton(new SettingsService("appsettings.json"));
 builder.Services.AddSingleton<IAppSettings, AppSettings>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
 
@@ -25,30 +23,24 @@ builder.Services.AddHttpClient<TfGraphQLApiClient>(client =>
     client.BaseAddress = new Uri("https://graphql.qa.grid.tf/graphql");
 });
 
-//builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IDockerService, DockerService>();
 builder.Services.AddScoped<ITfGraphQLApiClient, TfGraphQLApiClient>();
-
-//builder.Services.AddScoped<IDockerService>(provider =>
-//{
-//    return new DockerService(builder.Configuration);
-//});
-
-//builder.Services.AddScoped<StartupService>();
 
 var app = builder.Build();
 
 // Startup 
-using (var scope = app.Services.CreateScope())
-{
-    var tfGraphQLApiClient = scope.ServiceProvider.GetRequiredService<TfGraphQLApiClient>();
-    await tfGraphQLApiClient.StartStatusInterval();
-}
 
 using (var scope = app.Services.CreateScope())
 {
     var settingsService = scope.ServiceProvider.GetRequiredService<ISettingsService>();
     await settingsService.ReloadConfiguration();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var tfGraphQLApiClient = scope.ServiceProvider.GetRequiredService<TfGraphQLApiClient>();
+    await tfGraphQLApiClient.StartStatusInterval();
 }
 
 app.UseSwaggerUI();

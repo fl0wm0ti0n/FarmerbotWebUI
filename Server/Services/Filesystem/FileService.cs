@@ -6,7 +6,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
     {
         private readonly IAppSettings _appSettings;
 
-        public FileService(IAppSettings appSettings, CancellationToken cancellationToken)
+        public FileService(IAppSettings appSettings)
         {
             _appSettings = appSettings;
         }

@@ -1,21 +1,21 @@
-﻿@page "/nodestatus"
+﻿@page "/nodestatus/{botStatus}"
 @inject IDockerService DockerService
 
 <RadzenCard Style="width: 310px; height: 200px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
     <RadzenText Style="font-weight:700; margin-bottom: 8px">FarmerBot status</RadzenText>
     <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
-        @if (DockerService.ActualFarmerBotStatus != null && !DockerService.ActualFarmerBotStatus.NoStatus)
+        @if (botStatus != null && !botStatus.NoStatus)
         {
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="5px">
                 <RadzenText Style="width: 90px; font-weight:300; " >Updated at</RadzenText>
-                @foreach (var farmerBot in DockerService.ActualFarmerBotStatus.Containers)
+                @foreach (var farmerBot in botStatus.Containers)
                 {
                     <RadzenText Style="width: 90px; font-weight:300; ">@(farmerBot.Name)</RadzenText>
                 }
             </RadzenStack>
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="5px">
-                <RadzenText Style="width: 140px;">@DockerService.ActualFarmerBotStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
-                @foreach (var farmerBot in DockerService.ActualFarmerBotStatus.Containers)
+                <RadzenText Style="width: 140px;">@botStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
+                @foreach (var farmerBot in botStatus.Containers)
                 {
                     <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(farmerBot.Running)" Text="@(farmerBot.Name)" />
                 }
@@ -30,7 +30,9 @@
     </RadzenStack>
 </RadzenCard>
 @code {
- 
+    [Parameter]
+    public FarmerBotStatus botStatus { get; set; }
+
     private string GetSeverityClass(EventMessage message)
     {
         return "justify-content-center align-items-center rz-shadow-3 " + LogLevelStyleMapper.LogLevelToRadzenCss(message.Severity);

@@ -124,30 +124,23 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
             var GuiAndProgress = id.Typ == EventTyp.UserAction ? true : false;
             id = _eventConsole.AddMessage(id, title, message, GuiAndProgress, false, GuiAndProgress, LogLevel.Information, EventResult.Valueless);
 
-            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<AppSettings>>("api/settings/getsettings");
+            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBot>>($"api/get/{botName}");
             if (response.Success)
             {
-                _appSettings = response.Data;
-                AppSetting = response.Data;
-                _appSettings.InvokeOnAppSettingsChanged(AppSetting);
                 _eventConsole.UpdateMessage(id, title, response.Message, false, true, GuiAndProgress, LogLevel.Information, EventResult.Successfully);
             }
             else if (!response.Success)
             {
-                _appSettings = response.Data;
-                AppSetting = response.Data;
-                OnAppSettingsChanged?.Invoke(this, response.Data);
                 message = $"Error getting FarmerBot Files...\n{response.Message}";
                 _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
             }
-            _lockInterval = false;
             return response;
         }
 
         public async Task<ServiceResponse<string>> SetFarmerBotAsync(FarmerBot bot, EventSourceActionId id, CancellationToken cancellationToken)
         {
             var content = JsonContent.Create(bot);
-            var response = await _httpClient.PostAsync($"api/compose/set", content, cancellationToken);
+            var response = await _httpClient.PostAsync($"api/bot/set", content, cancellationToken);
 
             var responseContent = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<ServiceResponse<string>>(responseContent);

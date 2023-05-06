@@ -1,10 +1,10 @@
-﻿@page "/setupstatus"
+﻿@page "/setupstatus/{botStatus}"
 @inject IDockerService DockerService
 
 <RadzenCard Style="width: 310px; height: 200px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
     <RadzenText Style="font-weight:700; margin-bottom: 8px" >Setup status</RadzenText>
     <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
-        @if (DockerService.ActualFarmerBotStatus != null && !DockerService.ActualFarmerBotStatus.NoStatus)
+        @if (botStatus != null && !botStatus.NoStatus)
         {
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.Center" Gap="5px">
                 <RadzenText Style="font-weight:300; width: 90px">Updated at</RadzenText>
@@ -14,11 +14,11 @@
                 <RadzenText Style="font-weight:300; width: 90px">.Env-File</RadzenText>
             </RadzenStack>
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.Center" Gap="5px">
-                <RadzenText Style="font-weight:500; width: 140px">@DockerService.ActualFarmerBotStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
-                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.Status())" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.Status()))" />
-                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.ComposeOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.ComposeOk))" />
-                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.ConfigOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.ConfigOk))" />
-                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(DockerService.ActualFarmerBotStatus.EnvOk)" Text="@(GetSuccessText(DockerService.ActualFarmerBotStatus.EnvOk))" />
+                <RadzenText Style="font-weight:500; width: 140px">@botStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(botStatus.Status())" Text="@(GetSuccessText(botStatus.Status()))" />
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(botStatus.ComposeOk)" Text="@(GetSuccessText(botStatus.ComposeOk))" />
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(botStatus.ConfigOk)" Text="@(GetSuccessText(botStatus.ConfigOk))" />
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(botStatus.EnvOk)" Text="@(GetSuccessText(botStatus.EnvOk))" />
             </RadzenStack>
         }
         else
@@ -29,7 +29,10 @@
         }
     </RadzenStack>
 </RadzenCard>
+
 @code {
+    [Parameter]
+    public FarmerBotStatus botStatus { get; set; }
 
     private string GetSeverityClass(EventMessage message)
     {

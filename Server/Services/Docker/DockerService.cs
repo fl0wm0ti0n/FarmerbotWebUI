@@ -386,7 +386,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
 
             foreach (var bot in _appSettings.FarmerBotSettings.Bots)
             {
-                if (!ActualFarmerBotStatus.Contains(ActualFarmerBotStatus.Find(s => s.Name == bot.BotName)))
+                if (ActualFarmerBotStatus.Count > 0 && !ActualFarmerBotStatus.Contains(ActualFarmerBotStatus.Find(s => s.Name == bot.BotName)))
                 {
                     //TODO: Settings unsync Error 
                 }
