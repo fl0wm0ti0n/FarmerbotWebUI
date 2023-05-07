@@ -233,7 +233,13 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 actualStatus.EnvOk = true;
                 actualStatus.ConfigOk = true;
             }
-            actualStatus.LastUpdate = DateTime.UtcNow;
+            else
+            {
+                var bot = await _fileService.GetFarmerBotAsync(botName, cancellationToken);
+                actualStatus.EnvOk = !bot.Data.EnvFile.IsError;
+                actualStatus.ConfigOk = !bot.Data.FarmerBotConfig.IsError;
+                actualStatus.ComposeOk = !bot.Data.DockerCompose.IsError;
+            }
 
             if (cancellationToken.IsCancellationRequested)
             {
@@ -241,6 +247,7 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 exitCode = 1;
                 actualStatus.NoStatus = true;
             }
+            actualStatus.LastUpdate = DateTime.UtcNow;
 
             ActualFarmerBotStatus.Add(actualStatus);
 

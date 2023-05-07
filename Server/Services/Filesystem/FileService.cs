@@ -115,6 +115,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
                 return dockerCompose;
             }
         }
+
         private async Task<bool> WriteToComposeFile(string path, DockerCompose compose, CancellationToken ct)
         {
             try

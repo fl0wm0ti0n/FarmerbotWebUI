@@ -34,13 +34,14 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var settingsService = scope.ServiceProvider.GetRequiredService<ISettingsService>();
-    await settingsService.ReloadConfiguration();
+    _ = await settingsService.ReloadConfiguration();
 }
 
 using (var scope = app.Services.CreateScope())
 {
     var tfGraphQLApiClient = scope.ServiceProvider.GetRequiredService<TfGraphQLApiClient>();
-    await tfGraphQLApiClient.StartStatusInterval();
+    _ = await tfGraphQLApiClient.GetNodesListAsync();
+    _ = await tfGraphQLApiClient.StartStatusInterval();
 }
 
 app.UseSwaggerUI();

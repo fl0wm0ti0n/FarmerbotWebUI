@@ -4,7 +4,7 @@
 <RadzenCard Style="width: 310px; height: 200px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
     <RadzenText Style="font-weight:700; margin-bottom: 8px" >Setup status</RadzenText>
     <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
-        @if (botStatus != null && !botStatus.NoStatus)
+        @if (botStatus != null)
         {
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.Center" Gap="5px">
                 <RadzenText Style="font-weight:300; width: 90px">Updated at</RadzenText>
