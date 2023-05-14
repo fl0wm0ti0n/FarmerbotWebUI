@@ -1,8 +1,10 @@
 ﻿@page "/setupstatus/{botStatus}"
 @inject IDockerService DockerService
+@inject TooltipService TooltipService
+@implements IDisposable
 
 <RadzenCard Style="width: 310px; height: 200px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
-    <RadzenText Style="font-weight:700; margin-bottom: 8px" >Setup status</RadzenText>
+    <RadzenText Style="font-weight:700; margin-bottom: 8px"> setup of "@botStatus.Name"</RadzenText>
     <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
         @if (botStatus != null)
         {
@@ -16,9 +18,9 @@
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.Center" Gap="5px">
                 <RadzenText Style="font-weight:500; width: 140px">@botStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
                 <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(botStatus.Status())" Text="@(GetSuccessText(botStatus.Status()))" />
-                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(botStatus.ComposeOk)" Text="@(GetSuccessText(botStatus.ComposeOk))" />
-                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(botStatus.ConfigOk)" Text="@(GetSuccessText(botStatus.ConfigOk))" />
-                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(botStatus.EnvOk)" Text="@(GetSuccessText(botStatus.EnvOk))" />
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(botStatus.ComposeOk)" Text="@(GetSuccessText(botStatus.ComposeOk))" MouseEnter="@(args => ShowTooltip(botStatus.ComposeError, args))"/>
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(botStatus.ConfigOk)" Text="@(GetSuccessText(botStatus.ConfigOk))" MouseEnter="@(args => ShowTooltip(botStatus.ConfigError, args))" />
+                <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(botStatus.EnvOk)" Text="@(GetSuccessText(botStatus.EnvOk))" MouseEnter="@(args => ShowTooltip(botStatus.EnvError, args))" />
             </RadzenStack>
         }
         else
@@ -33,6 +35,14 @@
 @code {
     [Parameter]
     public FarmerBotStatus botStatus { get; set; }
+
+    void ShowTooltip(string info, ElementReference elementReference) => TooltipService.Open(elementReference, info,
+        new TooltipOptions()
+            {
+                Delay = 1000,
+                Duration = 10000,
+                Style = "background: rgb(178, 222, 228); color: black; font-weight: 100; font-size:small; word-wrap: break-word;"
+            });
 
     private string GetSeverityClass(EventMessage message)
     {

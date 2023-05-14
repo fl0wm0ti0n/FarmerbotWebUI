@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FarmerbotWebUI.Shared
+namespace FarmerbotWebUI.Shared.BotConfig
 {
     public class EnvFile
     {
@@ -60,6 +60,6 @@ namespace FarmerbotWebUI.Shared
             sb.AppendLine("RELAY=" + Relay);
             sb.AppendLine("SUBSTRATE=" + Substrate);
             return sb.ToString();
-        } 
+        }
     }
 }

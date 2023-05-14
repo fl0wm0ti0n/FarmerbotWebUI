@@ -1,24 +1,18 @@
-﻿@page "/nodestatus/{botStatus}"
-@inject IDockerService DockerService
+﻿@page "/nodestatus/{nodeStatus}"
+@inject INodeStatusService NodeStatusService
 
 <RadzenCard Style="width: 310px; height: 200px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
     <RadzenText Style="font-weight:700; margin-bottom: 8px">FarmerBot status</RadzenText>
     <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
-        @if (botStatus != null && !botStatus.NoStatus)
+        @if (nodeStatus != null && !nodeStatus.NoStatus)
         {
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="5px">
                 <RadzenText Style="width: 90px; font-weight:300; " >Updated at</RadzenText>
-                @foreach (var farmerBot in botStatus.Containers)
-                {
-                    <RadzenText Style="width: 90px; font-weight:300; ">@(farmerBot.Name)</RadzenText>
-                }
+                    <RadzenText Style="width: 90px; font-weight:300; ">@(nodeStatus.BotNode.NodeId)</RadzenText>
             </RadzenStack>
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="5px">
-                <RadzenText Style="width: 140px;">@botStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
-                @foreach (var farmerBot in botStatus.Containers)
-                {
-                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(farmerBot.Running)" Text="@(farmerBot.Name)" />
-                }
+                <RadzenText Style="width: 140px;">@nodeStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
+                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(nodeStatus.BotNode.Online)" Text="@GetSuccessText(nodeStatus.BotNode.Online)" />
             </RadzenStack>
         }
         else
@@ -31,7 +25,7 @@
 </RadzenCard>
 @code {
     [Parameter]
-    public FarmerBotStatus botStatus { get; set; }
+    public NodeStatusSet nodeStatus { get; set; }
 
     private string GetSeverityClass(EventMessage message)
     {
@@ -43,13 +37,18 @@
         return status ? BadgeStyle.Success : BadgeStyle.Danger;
     }
 
+    private string GetSuccessText(bool status)
+    {
+        return status ? "OK" : "Not OK";
+    }
+
     protected override void OnInitialized()
     {
-        DockerService.StatusChanged += StateHasChanged;
+        //NodeStatusService.StatusChanged += StateHasChanged;
     }
 
     public void Dispose()
     {
-        DockerService.StatusChanged -= StateHasChanged;
+        //NodeStatusService.StatusChanged -= StateHasChanged;
     }
 }

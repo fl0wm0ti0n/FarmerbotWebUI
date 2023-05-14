@@ -1,4 +1,4 @@
-﻿using FarmerbotWebUI.Shared;
+﻿using FarmerbotWebUI.Shared.BotConfig;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Threading;

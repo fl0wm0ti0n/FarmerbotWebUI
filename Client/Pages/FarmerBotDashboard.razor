@@ -1,7 +1,8 @@
 ﻿@page "/dashboard"
 @using FarmerBotWebUI.Shared;
-@inject IAppSettings AppSettings
+@using FarmerbotWebUI.Shared.BotConfig;
 @inject IEventConsoleService EventConsoleService
+@inject IAppSettings AppSettings
 @inject IDockerService DockerService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
@@ -14,27 +15,31 @@
     <RadzenSplitterPane Size="40%" Min="10%" Max="70%">
         <RadzenSplitter Orientation="Orientation.Vertical" Collapse=@OnCollapse Expand=@OnExpand>
             @*### top left - On/off and farmerbot status section*@
-            <RadzenSplitterPane Size="30%" Min="25%" Max="60%" Style="padding: 20px; background-color: rgb(137, 174, 192); display: flex; justify-content: left; align-items: left;">
-                @foreach (var botStatus in DockerService.ActualFarmerBotStatus)
-                {
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
-                        <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.NoWrap">
-                            <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => StartDockerComposeAsync(botStatus.Name)) BusyText="Doing ..." IsBusy=@busy Text="Start Farmerbot" ButtonStyle="ButtonStyle.Success" Disabled="@(botStatus.Status())" />
-                            <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => StopDockerComposeAsync(botStatus.Name)) BusyText="Doing ..." IsBusy=@busy Text="Stop Farmerbot" ButtonStyle="ButtonStyle.Danger" Disabled="@(!botStatus.Status())" />
-                            <RadzenButton Style="width: 150px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(UpdateDockerComposeAsync) BusyText="Doing ..." IsBusy=@busy Text="Update Status" ButtonStyle="ButtonStyle.Secondary" />
+            <RadzenSplitterPane Size="30%" Min="25%" Max="60%" Style="background-color: rgb(137, 174, 192); display: flex; justify-content: left; align-items:start">
+                <RadzenStack Style="margin-left: 20px; margin-top: 20px" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
+                    @foreach (var botStatus in DockerService.ActualFarmerBotStatus)
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
+                            <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.NoWrap">
+                                <RadzenButton Style="width: 200px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => StartDockerComposeAsync(botStatus.Name)) BusyText="Doing ..." IsBusy=@busy Text="@($"Start \"{botStatus.Name}\"")" ButtonStyle="ButtonStyle.Success" Disabled="@(botStatus.Status())" />
+                                <RadzenButton Style="width: 200px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => StopDockerComposeAsync(botStatus.Name)) BusyText="Doing ..." IsBusy=@busy Text="@($"Stop \"{botStatus.Name}\"")" ButtonStyle="ButtonStyle.Danger" Disabled="@(!botStatus.Status())" />
+                                <RadzenButton Style="width: 200px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => UpdateDockerComposeAsync(botStatus.Name)) BusyText="Doing ..." IsBusy=@busy Text="@($"Update Status of \"{botStatus.Name}\"")" ButtonStyle="ButtonStyle.Secondary" />
+                            </RadzenStack>
+                            <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.NoWrap">
+                                <FarmerBotStatusPage botStatus=@botStatus />
+                            </RadzenStack>
                         </RadzenStack>
-                        <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.NoWrap">
-                            <FarmerBotStatusPage botStatus=@botStatus />
-                        </RadzenStack>
+                    }
                     </RadzenStack>
-                }
             </RadzenSplitterPane>
             @*### bottom left - no idea by now section*@
-            <RadzenSplitterPane style="padding: 20px; background-color: rgb(137, 174, 192); display: flex; justify-content: left; align-items: left; ">
-                @foreach (var botStatus in DockerService.ActualFarmerBotStatus)
-                {
-                    <SetupStatusPage botStatus=@botStatus />
-                }
+            <RadzenSplitterPane style="background-color: rgb(137, 174, 192); display: flex; justify-content: left; align-items:start; ">
+                <RadzenStack Style="margin-left: 20px; margin-top: 20px" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
+                    @foreach (var botStatus in DockerService.ActualFarmerBotStatus)
+                    {
+                        <SetupStatusPage botStatus=@botStatus />
+                    }
+                </RadzenStack>
             </RadzenSplitterPane>
         </RadzenSplitter>
     </RadzenSplitterPane>
@@ -42,16 +47,19 @@
         <RadzenSplitter Collapse=@OnCollapseDisabled Expand=@OnExpand Resize=@OnResizeDisabled>
             @*### full right - Node list and stati*@
             <RadzenSplitterPane style="display: flex; justify-content: center; align-items: center;">
-                <RadzenCard class="rz-border-radius-0 align-content-center justify-content-center">
-                    <RadzenText> //TODO node status section </RadzenText>
-                </RadzenCard>
+                <RadzenStack Style="margin-left: 20px; margin-top: 20px" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
+@*                    @foreach (var botStatus in DockerService.ActualFarmerBotStatus)
+                    {
+                        //<NodesStatus nodeStatus=@ />
+                    }*@
+                </RadzenStack>
             </RadzenSplitterPane>
         </RadzenSplitter>
     </RadzenSplitterPane>
 </RadzenSplitter>
 
 @code {
-    private ServiceResponse<List<FarmerBotStatus>>? Response { get; set; } = new ServiceResponse<List<FarmerBotStatus>>();
+    private ServiceResponse<List<FarmerBotStatus>>? Response { get; set; } = new ServiceResponse<List<FarmerBotStatus>>(){ Data = new List<FarmerBotStatus>(), Message = "", Success = false };
     private bool startButton = false;
     //private bool stopButton = false;
     private bool busy = false;
@@ -87,13 +95,15 @@
         DockerService.StatusChanged += StateHasChanged;
     }
 
-    private async Task UpdateDockerComposeAsync()
+    private async Task UpdateDockerComposeAsync(string botName)
     {
         EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.FarmerBotStatus, Source = EventSource.Dashboard, Typ = EventTyp.UserAction };
         busy = true;
         StateHasChanged();
 
-        Response = await DockerService.GetComposeStatusListAsync(eventSourceActionId);
+        Response.Data.Remove(Response.Data.FirstOrDefault(r => r.Name == botName));
+        var data = await DockerService.GetComposeStatusAsync(botName, eventSourceActionId);
+        Response.Data.Add(data.Data);
         busy = false;
         StateHasChanged();
     }

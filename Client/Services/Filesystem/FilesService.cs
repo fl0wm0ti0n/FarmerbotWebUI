@@ -1,5 +1,5 @@
 ﻿using FarmerbotWebUI.Client.Shared;
-using FarmerbotWebUI.Shared;
+using FarmerbotWebUI.Shared.BotConfig;
 using FarmerBotWebUI.Shared;
 using Newtonsoft.Json;
 using System.Diagnostics;

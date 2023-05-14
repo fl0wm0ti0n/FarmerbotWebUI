@@ -1,4 +1,6 @@
 ﻿
+using FarmerbotWebUI.Shared.BotConfig;
+
 namespace FarmerbotWebUI.Server.Services.Filesystem
 {
     public interface IFileService

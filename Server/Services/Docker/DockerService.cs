@@ -1,5 +1,6 @@
 ﻿using Docker.DotNet;
 using Docker.DotNet.Models;
+using FarmerbotWebUI.Shared.BotConfig;
 using FarmerBotWebUI.Shared;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -227,18 +228,38 @@ namespace FarmerbotWebUI.Server.Services.Docker
                 actualStatus.NoStatus = true;
             }
 
-            if (actualStatus.Status())
+            // try to get also all BotInfos away from Docker
+            var bot = await _fileService.GetFarmerBotAsync(botName, cancellationToken);
+            if (bot.Data != null)
             {
-                actualStatus.ComposeOk = true;
-                actualStatus.EnvOk = true;
-                actualStatus.ConfigOk = true;
+                if (bot.Data.IsError)
+                {
+                    error = bot.Message;
+                    exitCode = 1;
+                    actualStatus.NoStatus = true;
+                }
+                else
+                {
+                    actualStatus.EnvOk = !bot.Data.EnvFile.IsError;
+                    actualStatus.EnvError = bot.Data.EnvFile.ErrorMessage;
+                    actualStatus.ConfigOk = !bot.Data.FarmerBotConfig.IsError;
+                    actualStatus.ConfigError = bot.Data.FarmerBotConfig.ErrorMessage;
+                    actualStatus.ComposeOk = !bot.Data.DockerCompose.IsError;
+                    actualStatus.ComposeError = bot.Data.DockerCompose.ErrorMessage;
+                    if (actualStatus.ConfigOk)
+                    {
+                        actualStatus.BotDefinitionInfos.WakeUpThreshold = bot.Data.FarmerBotConfig.PowerDefinition.WakeUpThreshold;
+                        actualStatus.BotDefinitionInfos.PeriodicWakeup = bot.Data.FarmerBotConfig.PowerDefinition.PeriodicWakeup;
+                        actualStatus.BotDefinitionInfos.PublicIps = bot.Data.FarmerBotConfig.FarmDefinition.PublicIps;
+                        actualStatus.BotDefinitionInfos.Id = bot.Data.FarmerBotConfig.FarmDefinition.Id;
+                    }
+                }
             }
             else
             {
-                var bot = await _fileService.GetFarmerBotAsync(botName, cancellationToken);
-                actualStatus.EnvOk = !bot.Data.EnvFile.IsError;
-                actualStatus.ConfigOk = !bot.Data.FarmerBotConfig.IsError;
-                actualStatus.ComposeOk = !bot.Data.DockerCompose.IsError;
+                error = "Bot not found in _fileService.GetFarmerBotAsync(botName, cancellationToken);";
+                exitCode = 1;
+                actualStatus.NoStatus = true;
             }
 
             if (cancellationToken.IsCancellationRequested)
@@ -391,9 +412,11 @@ namespace FarmerbotWebUI.Server.Services.Docker
             List<FarmerBotStatus> stati = new List<FarmerBotStatus>();
             string error = "";
 
+            int i = 0;
             foreach (var bot in _appSettings.FarmerBotSettings.Bots)
             {
-                if (ActualFarmerBotStatus.Count > 0 && !ActualFarmerBotStatus.Contains(ActualFarmerBotStatus.Find(s => s.Name == bot.BotName)))
+                i++;
+                if (ActualFarmerBotStatus.Count > i && !ActualFarmerBotStatus.Contains(ActualFarmerBotStatus.Find(s => s.Name == bot.BotName)))
                 {
                     //TODO: Settings unsync Error 
                 }

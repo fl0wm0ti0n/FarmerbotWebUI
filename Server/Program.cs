@@ -2,6 +2,8 @@ global using FarmerbotWebUI.Server.Services.Docker;
 global using FarmerbotWebUI.Server.Services.Filesystem;
 global using FarmerbotWebUI.Server.Services.Settings;
 global using FarmerbotWebUI.Server.Services.TfApiClient;
+global using FarmerbotWebUI.Client.Services.NodeStatus;
+global using FarmerBotWebUI.Shared.NodeStatus;
 global using FarmerbotWebUI.Shared;
 using FarmerbotWebUI.Server;
 using FarmerBotWebUI.Shared;
@@ -26,6 +28,7 @@ builder.Services.AddHttpClient<TfGraphQLApiClient>(client =>
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IDockerService, DockerService>();
 builder.Services.AddScoped<ITfGraphQLApiClient, TfGraphQLApiClient>();
+builder.Services.AddScoped<INodeStatusService, NodeStatusService>();
 
 var app = builder.Build();
 

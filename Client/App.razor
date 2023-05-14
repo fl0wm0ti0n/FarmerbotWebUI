@@ -70,14 +70,6 @@
         _ = InitializeDocker();
     }
 
-    private async Task InitializeCompose()
-    {
-        //if (AppSettings.DockerSettings. != "" || AppSettings.DockerSettings.DockerEndpointWindows != "")
-        //{
-        //    await DockerService.StartStatusInterval();
-        //}
-    }
-
     public void Dispose()
     {
         AppSettings.OnAppSettingsChanged -= UpdateAppSettings;

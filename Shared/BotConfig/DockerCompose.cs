@@ -1,7 +1,7 @@
 ﻿using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace FarmerbotWebUI.Shared
+namespace FarmerbotWebUI.Shared.BotConfig
 {
     public class DockerCompose
     {
@@ -50,7 +50,7 @@ namespace FarmerbotWebUI.Shared
         [YamlMember(Alias = "restart")]
         public string Restart { get; set; }
 
-        [YamlMember(Alias = "depends_on")] 
+        [YamlMember(Alias = "depends_on")]
         public Dictionary<string, Dependency> DependsOn { get; set; }
 
         [YamlMember(Alias = "volumes")]

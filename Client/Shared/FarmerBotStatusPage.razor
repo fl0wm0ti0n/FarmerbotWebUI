@@ -1,30 +1,46 @@
 ﻿@page "/farmerbotstatus/{botStatus}"
 @inject IDockerService DockerService
+@inject IFileService FileService
+@implements IDisposable
 
-<RadzenCard Style="width: 310px; height: 200px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
-    <RadzenText Style="font-weight:700; margin-bottom: 8px">FarmerBot status</RadzenText>
-    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
+<RadzenCard Style="width: 310px; height: 300px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
+    <RadzenText Style="font-weight:700; margin-bottom: 8px">@botStatus.Name status</RadzenText>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="2.5rem">
         @if (botStatus != null && !botStatus.NoStatus)
         {
-            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="5px">
+            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Start" Gap="5px">
                 <RadzenText Style="width: 90px; font-weight:300; " >Updated at</RadzenText>
-                @foreach (var farmerBot in botStatus.Containers)
+                @foreach (var container in botStatus.Containers)
                 {
-                    <RadzenText Style="width: 90px; font-weight:300; ">@(farmerBot.Name)</RadzenText>
+                    <RadzenText Style="width: 90px; font-weight:300; ">@container.Name</RadzenText>
+                }
+                @if (botStatus.ConfigOk)
+                {
+                    <RadzenText Style="margin-top:10px; width: 90px; font-weight:300; ">FarmId</RadzenText>
+                    <RadzenText Style="width: 90px; font-weight:300; ">PublicIps</RadzenText>
+                    <RadzenText Style="width: 90px; font-weight:300; ">PeriodicWakeup</RadzenText>
+                    <RadzenText Style="width: 90px; font-weight:300; ">WakeUpThreshold</RadzenText>
                 }
             </RadzenStack>
-            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" Gap="5px">
+            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Start" Gap="5px">
                 <RadzenText Style="width: 140px;">@botStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
-                @foreach (var farmerBot in botStatus.Containers)
+                @foreach (var container in botStatus.Containers)
                 {
-                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(farmerBot.Running)" Text="@(farmerBot.Name)" />
+                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(container.Running)" Text="@(container.Name)" />
+                }
+                @if (botStatus.ConfigOk)
+                {
+                    <RadzenText Style="margin-top:10px; width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.Id</RadzenText>
+                    <RadzenText Style="width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.PublicIps</RadzenText>
+                    <RadzenText Style="width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.PeriodicWakeup</RadzenText>
+                    <RadzenText Style="width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.WakeUpThreshold</RadzenText>
                 }
             </RadzenStack>
         }
         else
         {
             <RadzenColumn Style="height: 100%; width: 100%; " class="align-content-center justify-content-center">
-                <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Style="height: 130px; width: 100%; margin-top: 9px; " Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" class="rz-border-radius-0" />
+                <RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Style="height: 230px; width: 100%; margin-top: 9px; " Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" class="rz-border-radius-0" />
             </RadzenColumn>
         }
     </RadzenStack>

@@ -1,4 +1,5 @@
-﻿using FarmerBotWebUI.Shared;
+﻿using FarmerbotWebUI.Shared.BotConfig;
+using FarmerBotWebUI.Shared;
 using Radzen;
 using System.Net.Http.Json;
 

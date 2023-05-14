@@ -1,5 +1,4 @@
-﻿using FarmerbotWebUI.Shared;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -10,7 +9,7 @@ using Markdig.Syntax;
 using Markdig.Extensions.CustomContainers;
 
 
-namespace FarmerbotWebUI.Shared
+namespace FarmerbotWebUI.Shared.BotConfig
 {
     public class FarmerBotConfig
     {
@@ -26,7 +25,7 @@ namespace FarmerbotWebUI.Shared
 
             // Serialize nodes
             sb.AppendLine("My nodes");
-            foreach (var node in this.NodeDefinitions)
+            foreach (var node in NodeDefinitions)
             {
                 sb.AppendLine("!!farmerbot.nodemanager.define");
                 sb.AppendLine($"    id:{node.Id}");
@@ -46,23 +45,23 @@ namespace FarmerbotWebUI.Shared
             }
 
             // Serialize farm configuration
-            if (this.FarmDefinition != null)
+            if (FarmDefinition != null)
             {
                 sb.AppendLine();
                 sb.AppendLine("Farm configuration");
                 sb.AppendLine("!!farmerbot.farmmanager.define");
-                sb.AppendLine($"    id:{this.FarmDefinition.Id}");
-                sb.AppendLine($"    public_ips: {this.FarmDefinition.PublicIps}");
+                sb.AppendLine($"    id:{FarmDefinition.Id}");
+                sb.AppendLine($"    public_ips: {FarmDefinition.PublicIps}");
             }
 
             // Serialize power configuration
-            if (this.PowerDefinition != null)
+            if (PowerDefinition != null)
             {
                 sb.AppendLine();
                 sb.AppendLine("Power configuration");
                 sb.AppendLine("!!farmerbot.powermanager.define");
-                sb.AppendLine($"    wake_up_threshold:{this.PowerDefinition.WakeUpThreshold}");
-                sb.AppendLine($"    periodic_wakeup: {this.PowerDefinition.PeriodicWakeup}");
+                sb.AppendLine($"    wake_up_threshold:{PowerDefinition.WakeUpThreshold}");
+                sb.AppendLine($"    periodic_wakeup: {PowerDefinition.PeriodicWakeup}");
             }
             return sb.ToString();
         }

@@ -1,0 +1,23 @@
+
+My nodes
+!!farmerbot.nodemanager.define
+    id:13
+    twinid:261
+    never_shutdown:true
+!!farmerbot.nodemanager.define
+    id:17
+    twinid:269
+    never_shutdown:true
+!!farmerbot.nodemanager.define     
+    id:18
+    twinid:270
+    never_shutdown:true
+Farm configuration
+!!farmerbot.farmmanager.define
+    id:158
+    public_ips:0
+
+Power configuration
+!!farmerbot.powermanager.define
+    wake_up_threshold:85
+    periodic_wakeup:8:30AM

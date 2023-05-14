@@ -1,4 +1,5 @@
-﻿using FarmerBotWebUI.Shared;
+﻿using FarmerbotWebUI.Shared.BotConfig;
+using FarmerBotWebUI.Shared;
 
 namespace FarmerbotWebUI.Server.Services.Filesystem
 {

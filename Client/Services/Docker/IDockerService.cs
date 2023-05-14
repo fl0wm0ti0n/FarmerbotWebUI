@@ -1,4 +1,4 @@
-﻿using FarmerbotWebUI.Shared;
+﻿using FarmerbotWebUI.Shared.BotConfig;
 
 namespace FarmerbotWebUI.Client.Services.Docker
 {

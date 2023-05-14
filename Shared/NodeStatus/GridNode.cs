@@ -5,23 +5,38 @@ using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace FarmerBotWebUI.Shared
+namespace FarmerBotWebUI.Shared.NodeStatus
 {
+    public class GridNodeSet
+    {
+        [JsonIgnore]
+        public List<Node> Nodes { get; set; } = new List<Node>();
+
+        [JsonIgnore]
+        public Farm? GridFarm { get; set; }
+
+        [JsonIgnore]
+        public bool IsError { get; set; }
+        [JsonIgnore]
+        public string ErrorMessage { get; set; } = string.Empty;
+    }
+
     public partial class Nodes
     {
         [JsonProperty("data")]
-        public Data Data { get; set; }
+        public Data Data { get; set; } = new Data();
     }
 
     public partial class Data
     {
         [JsonProperty("nodes")]
-        public List<Node> Nodes { get; set; }
+        public List<Node> Nodes { get; set; } = new List<Node>();
     }
+
     public partial class Node
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
         [JsonProperty("nodeID")]
         public long NodeId { get; set; }
@@ -44,22 +59,22 @@ namespace FarmerBotWebUI.Shared
         public bool Secure { get; set; }
 
         [JsonProperty("serialNumber")]
-        public string SerialNumber { get; set; }
+        public string SerialNumber { get; set; } = string.Empty;
 
         [JsonProperty("resourcesTotal")]
-        public ResourcesTotal ResourcesTotal { get; set; }
+        public ResourcesTotal ResourcesTotal { get; set; } = new ResourcesTotal();
 
         [JsonProperty("publicConfig")]
-        public PublicConfig PublicConfig { get; set; }
+        public PublicConfig PublicConfig { get; set; } = new PublicConfig();
 
         [JsonProperty("power")]
-        public Power Power { get; set; }
+        public Power Power { get; set; } = new Power();
 
         [JsonProperty("location")]
-        public Location Location { get; set; }
+        public Location Location { get; set; } = new Location();
 
         [JsonProperty("interfaces")]
-        public List<Interface> Interfaces { get; set; }
+        public List<Interface> Interfaces { get; set; } = new List<Interface>();
 
         [JsonProperty("gridVersion")]
         public long GridVersion { get; set; }
@@ -78,88 +93,88 @@ namespace FarmerBotWebUI.Shared
         public long Created { get; set; }
 
         [JsonProperty("country")]
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
 
         [JsonProperty("connectionPrice")]
-        public object ConnectionPrice { get; set; }
+        public object ConnectionPrice { get; set; } = string.Empty;
 
         [JsonProperty("city")]
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
         [JsonProperty("certification")]
-        public string Certification { get; set; }
+        public string Certification { get; set; } = string.Empty;
     }
 
     public partial class Interface
     {
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
-        [JsonProperty("mac")]
-        public string Mac { get; set; }
+        [JsonProperty("mac")] 
+        public string Mac { get; set; } = string.Empty;
 
-        [JsonProperty("ips")]
-        public string Ips { get; set; }
+        [JsonProperty("ips")] 
+        public string Ips { get; set; } = string.Empty;
 
-        [JsonProperty("id")]
-        public string Id { get; set; }
+        [JsonProperty("id")] 
+        public string Id { get; set; } = string.Empty;
     }
 
     public partial class Location
     {
-        [JsonProperty("id")]
-        public string Id { get; set; }
+        [JsonProperty("id")] 
+        public string Id { get; set; } = string.Empty;
 
-        [JsonProperty("latitude")]
-        public string Latitude { get; set; }
+        [JsonProperty("latitude")] 
+        public string Latitude { get; set; } = string.Empty;
 
-        [JsonProperty("longitude")]
-        public string Longitude { get; set; }
+        [JsonProperty("longitude")] 
+        public string Longitude { get; set; } = string.Empty;
     }
 
     public partial class Power
     {
-        [JsonProperty("target")]
-        public string Target { get; set; }
+        [JsonProperty("target")] 
+        public string Target { get; set; } = string.Empty;
 
-        [JsonProperty("state")]
-        public string State { get; set; }
+        [JsonProperty("state")] 
+        public string State { get; set; } = string.Empty;
     }
 
     public partial class PublicConfig
     {
-        [JsonProperty("ipv6")]
-        public string Ipv6 { get; set; }
+        [JsonProperty("ipv6")] 
+        public string Ipv6 { get; set; } = string.Empty;
 
-        [JsonProperty("ipv4")]
-        public string Ipv4 { get; set; }
+        [JsonProperty("ipv4")] 
+        public string Ipv4 { get; set; } = string.Empty;
 
-        [JsonProperty("id")]
-        public string Id { get; set; }
+        [JsonProperty("id")] 
+        public string Id { get; set; } = string.Empty;
 
-        [JsonProperty("gw6")]
-        public string Gw6 { get; set; }
+        [JsonProperty("gw6")] 
+        public string Gw6 { get; set; } = string.Empty;
 
-        [JsonProperty("gw4")]
-        public string Gw4 { get; set; }
+        [JsonProperty("gw4")] 
+        public string Gw4 { get; set; } = string.Empty;
 
-        [JsonProperty("domain")]
-        public string Domain { get; set; }
+        [JsonProperty("domain")] 
+        public string Domain { get; set; } = string.Empty;
     }
 
     public partial class ResourcesTotal
     {
         [JsonProperty("sru")]
-        public string Sru { get; set; }
+        public string Sru { get; set; } = string.Empty;
 
-        [JsonProperty("mru")]
-        public string Mru { get; set; }
+        [JsonProperty("mru")] 
+        public string Mru { get; set; } = string.Empty;
 
-        [JsonProperty("id")]
-        public string Id { get; set; }
+        [JsonProperty("id")] 
+        public string Id { get; set; } = string.Empty;
 
-        [JsonProperty("hru")]
-        public string Hru { get; set; }
+        [JsonProperty("hru")] 
+        public string Hru { get; set; } = string.Empty;
 
         [JsonProperty("cru")]
         [JsonConverter(typeof(ParseStringConverter))]
@@ -168,12 +183,12 @@ namespace FarmerBotWebUI.Shared
 
     public partial class Nodes
     {
-        public static Nodes FromJson(string json) => JsonConvert.DeserializeObject<Nodes>(json, FarmerBotWebUI.Shared.NodeConverter.Settings);
+        public static Nodes FromJson(string json) => JsonConvert.DeserializeObject<Nodes>(json, NodeConverter.Settings);
     }
 
     public static class NodeSerialize
     {
-        public static string ToJson(this Nodes self) => JsonConvert.SerializeObject(self, FarmerBotWebUI.Shared.NodeConverter.Settings);
+        public static string ToJson(this Nodes self) => JsonConvert.SerializeObject(self, NodeConverter.Settings);
     }
 
     internal static class NodeConverter
