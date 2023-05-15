@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 using Markdig;
 using Markdig.Syntax;
 using Markdig.Extensions.CustomContainers;
-
+using System.Reflection.Metadata;
+using System.Globalization;
 
 namespace FarmerbotWebUI.Shared.BotConfig
 {
@@ -19,167 +20,157 @@ namespace FarmerbotWebUI.Shared.BotConfig
         public bool IsError { get; set; } = false;
         public string ErrorMessage { get; set; } = string.Empty;
 
+        public void Deserialize(string document)
+        {
+            try
+            {
+                var lines = document.Split('\n');
+
+                for (var i = 0; i < lines.Length; i++)
+                {
+
+                    //## Node Configuration
+                    //id: the id of the node
+                    //twinid: the twin id of the node
+                    //never_shutdown: a value telling the farmerbot whether or not the node should never be shutdown
+                    //cpuoverprovision: a value between 1 and 4 defining how much the cpu can be overprovisioned (2 means the farmerbot will allocate 2 deployments to one cpu)
+                    //public_config: a value telling the farmerbot whether or not the node has a public config
+                    //dedicated: a value telling the farmerbot whether or not the node is dedicated (only allow renting the full node)
+                    //certified: a value telling the farmerbot whether or not the node is certified
+                    if (lines[i].Trim() == "!!farmerbot.nodemanager.define")
+                    {
+                        var node = new NodeDefinition();
+                        while (!string.IsNullOrWhiteSpace(lines[++i]))
+                        {
+                            var parts = lines[i].Split(':');
+                            if (parts[0].Trim() == "id")
+                                node.Id = int.Parse(parts[1]);
+                            else if (parts[0].Trim() == "twinid")
+                                node.TwinId = int.Parse(parts[1]);
+                            else if (parts[0].Trim() == "never_shutdown")
+                                node.NeverShutdown = bool.Parse(parts[1]);
+                            else if (parts[0].Trim() == "cpuoverprovision")
+                                node.CpuOverProvision = int.Parse(parts[1]);
+                            else if (parts[0].Trim() == "public_config")
+                                node.PublicConfig = bool.Parse(parts[1]);
+                            else if (parts[0].Trim() == "dedicated")
+                                node.Dedicated = int.Parse(parts[1]);
+                            else if (parts[0].Trim() == "certified")
+                                node.Certified = bool.Parse(parts[1]);
+                        }
+                        NodeDefinitions.Add(node);
+                    }
+
+                    //## Farm Configuration
+                    //id: the id of the farm
+                    //public_ips: the amount of public ips that the farm has
+                    else if (lines[i].Trim() == "!!farmerbot.farmmanager.define")
+                    {
+                        var farm = new FarmDefinition();
+                        while (!string.IsNullOrWhiteSpace(lines[++i]))
+                        {
+                            var parts = lines[i].Split(':');
+                            if (parts[0].Trim() == "id")
+                                farm.Id = int.Parse(parts[1]);
+                            else if (parts[0].Trim() == "public_ips")
+                                farm.PublicIps = int.Parse(parts[1]);
+                        }
+                        FarmDefinition = farm;
+                    }
+
+                    //## Power Configuration
+                    //wake_up_threshold: a value between 50 and 80 defining the threshold at which nodes will be powered on or off. If the usage percentage (total used resources devided by the total amount of resources) is greater then this threshold a new node will be powered on. In the other case the farmerbot will try to power off nodes if possible.
+                    //periodic_wakeup: nodes have to be woken up once a day, this variable defines the time at which this should happen. The offline nodes will be powered on sequentially with an interval of 5 minutes starting at the time defined by this variable.
+                    else if (lines[i].Trim() == "!!farmerbot.powermanager.define")
+                    {
+                        var power = new PowerDefinition();
+                        while (!string.IsNullOrWhiteSpace(lines[++i]))
+                        {
+                            var parts = lines[i].Split(':');
+                            if (parts[0].Trim() == "periodic_wakeup")
+                            {
+                                string keyValue = $"{parts[1].Trim()}:{parts[2].Trim()}";
+                                string[] formats = { "h:mmtt", "h:mm tt", "H:mm", "hh:mmtt" };
+                                DateTime time;
+                                if (DateTime.TryParseExact(keyValue, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out time))
+                                {
+                                    power.PeriodicWakeup = time;
+                                }
+                                else
+                                {
+                                    IsError = true;
+                                    ErrorMessage = "Invalid time format for wake_up_threshold";
+                                }
+                            }
+                            else if (parts[0].Trim() == "wake_up_threshold")
+                            {
+                                power.WakeUpThreshold = int.Parse(parts[1]);
+                            }
+                        }
+                        PowerDefinition = power;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                IsError = true;
+                ErrorMessage = ex.Message;
+            }
+        }
+
         public string Serialize()
         {
             StringBuilder sb = new StringBuilder();
-
-            // Serialize nodes
-            sb.AppendLine("My nodes");
-            foreach (var node in NodeDefinitions)
+            try
             {
-                sb.AppendLine("!!farmerbot.nodemanager.define");
-                sb.AppendLine($"    id:{node.Id}");
-                sb.AppendLine($"    twinid: {node.TwinId}");
-
-                if (node.PublicConfig.HasValue)
-                    sb.AppendLine($"    public_config: {node.PublicConfig.Value.ToString().ToLowerInvariant()}");
-
-                if (node.Dedicated.HasValue)
-                    sb.AppendLine($"    dedicated: {node.Dedicated.Value}");
-
-                if (node.Certified.HasValue)
-                    sb.AppendLine($"    certified: {(node.Certified.Value ? "yes" : "no")}");
-
-                if (node.CpuOverProvision.HasValue)
-                    sb.AppendLine($"    cpuoverprovision:{node.CpuOverProvision.Value}");
-            }
-
-            // Serialize farm configuration
-            if (FarmDefinition != null)
-            {
-                sb.AppendLine();
-                sb.AppendLine("Farm configuration");
-                sb.AppendLine("!!farmerbot.farmmanager.define");
-                sb.AppendLine($"    id:{FarmDefinition.Id}");
-                sb.AppendLine($"    public_ips: {FarmDefinition.PublicIps}");
-            }
-
-            // Serialize power configuration
-            if (PowerDefinition != null)
-            {
-                sb.AppendLine();
-                sb.AppendLine("Power configuration");
-                sb.AppendLine("!!farmerbot.powermanager.define");
-                sb.AppendLine($"    wake_up_threshold:{PowerDefinition.WakeUpThreshold}");
-                sb.AppendLine($"    periodic_wakeup: {PowerDefinition.PeriodicWakeup}");
-            }
-            return sb.ToString();
-        }
-
-        public FarmerBotConfig Deserialize(string markdown)
-        {
-            FarmerBotConfig parsedMarkdown = new FarmerBotConfig();
-
-            // Parse the markdown
-            var pipeline = new MarkdownPipelineBuilder().UseCustomContainers().Build();
-            var document = Markdown.Parse(markdown, pipeline);
-
-            // Process the parsed markdown elements
-            foreach (var block in document)
-            {
-                if (block is CustomContainer container)
+                // Serialize nodes
+                sb.AppendLine("My nodes");
+                foreach (var node in NodeDefinitions)
                 {
-                    if (container.Info == "farmerbot.nodemanager.define")
-                    {
-                        NodeDefinition node = ParseNodeDefinition(container);
-                        parsedMarkdown.NodeDefinitions.Add(node);
-                    }
-                    else if (container.Info == "farmerbot.farmmanager.define")
-                    {
-                        parsedMarkdown.FarmDefinition = ParseFarmDefinition(container);
-                    }
-                    else if (container.Info == "farmerbot.powermanager.define")
-                    {
-                        parsedMarkdown.PowerDefinition = ParsePowerDefinition(container);
-                    }
+                    sb.AppendLine("!!farmerbot.nodemanager.define");
+                    sb.AppendLine($"    id:{node.Id}");
+                    sb.AppendLine($"    twinid: {node.TwinId}");
+
+                    if (node.PublicConfig.HasValue)
+                        sb.AppendLine($"    public_config: {node.PublicConfig.Value.ToString().ToLowerInvariant()}");
+
+                    if (node.Dedicated.HasValue)
+                        sb.AppendLine($"    dedicated: {node.Dedicated.Value}");
+
+                    if (node.Certified.HasValue)
+                        sb.AppendLine($"    certified: {(node.Certified.Value ? "yes" : "no")}");
+
+                    if (node.CpuOverProvision.HasValue)
+                        sb.AppendLine($"    cpuoverprovision:{node.CpuOverProvision.Value}");
                 }
-            }
 
-            return parsedMarkdown;
-        }
-
-        private NodeDefinition ParseNodeDefinition(CustomContainer container)
-        {
-            NodeDefinition node = new NodeDefinition();
-            foreach (var block in container)
-            {
-                if (block is ParagraphBlock paragraph)
+                // Serialize farm configuration
+                if (FarmDefinition != null)
                 {
-                    string line = paragraph.ToString().Trim();
-                    string[] keyValue = line.Split(':');
-                    switch (keyValue[0].Trim())
-                    {
-                        case "id":
-                            node.Id = int.Parse(keyValue[1].Trim());
-                            break;
-                        case "twinid":
-                            node.TwinId = int.Parse(keyValue[1].Trim());
-                            break;
-                        case "public_config":
-                            node.PublicConfig = keyValue[1].Trim().Equals("true", StringComparison.OrdinalIgnoreCase);
-                            break;
-                        case "dedicated":
-                            node.Dedicated = int.Parse(keyValue[1].Trim());
-                            break;
-                        case "certified":
-                            node.Certified = keyValue[1].Trim().Equals("yes", StringComparison.OrdinalIgnoreCase);
-                            break;
-                        case "cpuoverprovision":
-                            node.CpuOverProvision = int.Parse(keyValue[1].Trim());
-                            break;
-                    }
+                    sb.AppendLine();
+                    sb.AppendLine("Farm configuration");
+                    sb.AppendLine("!!farmerbot.farmmanager.define");
+                    sb.AppendLine($"    id:{FarmDefinition.Id}");
+                    sb.AppendLine($"    public_ips: {FarmDefinition.PublicIps}");
                 }
-            }
 
-            return node;
-        }
-
-        private FarmDefinition ParseFarmDefinition(CustomContainer container)
-        {
-            FarmDefinition farm = new FarmDefinition();
-            foreach (var block in container)
-            {
-                if (block is ParagraphBlock paragraph)
+                // Serialize power configuration
+                if (PowerDefinition != null)
                 {
-                    string line = paragraph.ToString().Trim();
-                    string[] keyValue = line.Split(':');
-                    switch (keyValue[0].Trim())
-                    {
-                        case "id":
-                            farm.Id = int.Parse(keyValue[1].Trim());
-                            break;
-                        case "public_ips":
-                            farm.PublicIps = int.Parse(keyValue[1].Trim());
-                            break;
-                    }
+                    sb.AppendLine();
+                    sb.AppendLine("Power configuration");
+                    sb.AppendLine("!!farmerbot.powermanager.define");
+                    sb.AppendLine($"    wake_up_threshold:{PowerDefinition.WakeUpThreshold}");
+                    sb.AppendLine($"    periodic_wakeup: {PowerDefinition.PeriodicWakeup.ToString("h:mmtt")}");
                 }
+                return sb.ToString();
             }
-
-            return farm;
-        }
-
-        private PowerDefinition ParsePowerDefinition(CustomContainer container)
-        {
-            PowerDefinition power = new PowerDefinition();
-            foreach (var block in container)
+            catch (Exception ex)
             {
-                if (block is ParagraphBlock paragraph)
-                {
-                    string line = paragraph.ToString().Trim();
-                    string[] keyValue = line.Split(':');
-                    switch (keyValue[0].Trim())
-                    {
-                        case "wake_up_threshold":
-                            power.WakeUpThreshold = int.Parse(keyValue[1].Trim());
-                            break;
-                        case "periodic_wakeup":
-                            power.PeriodicWakeup = keyValue[1].Trim();
-                            break;
-                    }
-                }
-            }
-
-            return power;
+                IsError = true; 
+                ErrorMessage = ex.Message;
+                return ex.Message;
+            }      
         }
     }
 
@@ -218,7 +209,7 @@ namespace FarmerbotWebUI.Shared.BotConfig
     public class PowerDefinition
     {
         public int WakeUpThreshold { get; set; }
-        public string PeriodicWakeup { get; set; }
+        public DateTime PeriodicWakeup { get; set; }
     }
 }
 

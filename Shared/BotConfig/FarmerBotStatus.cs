@@ -56,7 +56,7 @@ namespace FarmerbotWebUI.Shared.BotConfig
         public int Id { get; set; }
         public int PublicIps { get; set; }
         public int WakeUpThreshold { get; set; }
-        public string PeriodicWakeup { get; set; } = string.Empty;
+        public DateTime PeriodicWakeup { get; set; }
     }
 
     public enum RunningStatus

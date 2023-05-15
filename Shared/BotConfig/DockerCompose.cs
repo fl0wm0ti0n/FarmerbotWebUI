@@ -17,27 +17,46 @@ namespace FarmerbotWebUI.Shared.BotConfig
         [YamlIgnore]
         public string ErrorMessage { get; set; } = string.Empty;
 
-        public DockerCompose DeserializeYaml(string yamlString)
+        public void DeserializeYaml(string yamlString)
         {
             // NullNamingConvention
             // HyphenatedNamingConvention
             // CamelCaseNamingConvention
             // UnderscoredNamingConvention
+            try
+            {
+                var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .Build();
 
-            var deserializer = new DeserializerBuilder()
-            .WithNamingConvention(NullNamingConvention.Instance)
-            .Build();
-
-            //yml contains a string containing your YAML
-            return deserializer.Deserialize<DockerCompose>(yamlString);
+                //yml contains a string containing your YAML
+                var yaml = deserializer.Deserialize<DockerCompose>(yamlString);
+                Services = yaml.Services;
+                Volumes = yaml.Volumes;
+            }
+            catch (Exception ex)
+            {
+                IsError = true;
+                ErrorMessage = ex.Message;
+            }
         }
 
         public string SerializeYaml()
         {
             var serializer = new SerializerBuilder()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)
-            .Build();
-            return serializer.Serialize(this);
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
+            try
+            {
+                var result = serializer.Serialize(this);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                IsError = true;
+                ErrorMessage = ex.Message;
+                return ex.Message;
+            }
         }
     }
 

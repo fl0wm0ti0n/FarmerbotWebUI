@@ -72,7 +72,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
             try
             {
                 string text = await File.ReadAllTextAsync(path, ct);
-                env.DeserializeEnvFile(text);
+                env.Deserialize(text);
                 env.IsError = false;
                 return env;
             }
@@ -88,7 +88,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
         {
             try
             {
-                var text = env.SerializeEnvFile();
+                var text = env.Serialize();
                 await File.WriteAllTextAsync(path, text, ct);
                 return true;
             }
@@ -181,7 +181,58 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
 
         public async Task<ServiceResponse<FarmerBotConfig>> GetMarkdownConfigAsync(string botName, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            string error = "";
+            FarmerBotConfig farmerBotConfig = new FarmerBotConfig();
+
+            if (!string.IsNullOrWhiteSpace(botName))
+            {
+                var botConfig = _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.BotName == botName);
+                if (botConfig != null)
+                {
+                    var ConfigPath = $"{botConfig.WorkingDirectory}{Path.DirectorySeparatorChar}{botConfig.FarmerBotConfigFile}";
+
+                    try
+                    {
+                        farmerBotConfig = await ParseFromMarkdownFile(ConfigPath, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        error = ex.Message;
+                    }
+                }
+                else
+                {
+                    error = $"Bot {botName} not found!";
+                }
+            }
+            else
+            {
+                error = $"Botname is empty!";
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                error = "Operation cancelled!";
+            }
+
+            if (farmerBotConfig.IsError)
+            {
+                error = farmerBotConfig.ErrorMessage;
+            }
+
+            if (error != null)
+            {
+                //TODO: Send it to Logservice
+            }
+
+            ServiceResponse<FarmerBotConfig> response = new ServiceResponse<FarmerBotConfig>
+            {
+                Data = farmerBotConfig,
+                Message = error,
+                Success = string.IsNullOrWhiteSpace(error)
+            };
+
+            return response;
         }
 
         public async Task<ServiceResponse<string>> SetRawMarkdownConfigAsync(string compose, string botName, CancellationToken cancellationToken)

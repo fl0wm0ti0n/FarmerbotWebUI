@@ -2,7 +2,7 @@ global using FarmerbotWebUI.Server.Services.Docker;
 global using FarmerbotWebUI.Server.Services.Filesystem;
 global using FarmerbotWebUI.Server.Services.Settings;
 global using FarmerbotWebUI.Server.Services.TfApiClient;
-global using FarmerbotWebUI.Client.Services.NodeStatus;
+global using FarmerbotWebUI.Server.Services.NodeStatus;
 global using FarmerBotWebUI.Shared.NodeStatus;
 global using FarmerbotWebUI.Shared;
 using FarmerbotWebUI.Server;

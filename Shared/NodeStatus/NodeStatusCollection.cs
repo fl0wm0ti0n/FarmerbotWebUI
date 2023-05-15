@@ -7,6 +7,7 @@ namespace FarmerbotWebUI.Shared.NodeStatus
     public class NodeStatusCollection
     {
         public List<NodeStatusSet> NodeStatusSets { get; set; } = new List<NodeStatusSet>();
+        public string BotName { get; set; } = string.Empty;
         public DateTime LastUpdate { get; set; }
         public bool NoStatus { get; set; } = false;
         public bool IsError() => NodeStatusSets.Any(n => n.IsError == true);

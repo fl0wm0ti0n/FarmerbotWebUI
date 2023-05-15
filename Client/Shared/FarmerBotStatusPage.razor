@@ -3,7 +3,7 @@
 @inject IFileService FileService
 @implements IDisposable
 
-<RadzenCard Style="width: 310px; height: 300px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
+<RadzenCard Style="width: 310px; height: 310px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
     <RadzenText Style="font-weight:700; margin-bottom: 8px">@botStatus.Name status</RadzenText>
     <RadzenStack Orientation="Orientation.Horizontal" Gap="2.5rem">
         @if (botStatus != null && !botStatus.NoStatus)
@@ -32,8 +32,8 @@
                 {
                     <RadzenText Style="margin-top:10px; width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.Id</RadzenText>
                     <RadzenText Style="width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.PublicIps</RadzenText>
-                    <RadzenText Style="width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.PeriodicWakeup</RadzenText>
-                    <RadzenText Style="width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.WakeUpThreshold</RadzenText>
+                    <RadzenText Style="width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.PeriodicWakeup.ToString("hh:mm tt")</RadzenText>
+                    <RadzenText Style="width: 90px; font-weight:100; ">@(botStatus.BotDefinitionInfos.WakeUpThreshold)%</RadzenText>
                 }
             </RadzenStack>
         }

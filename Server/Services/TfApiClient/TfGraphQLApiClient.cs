@@ -18,6 +18,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
         private IAppSettings _appSettings;
         private SemaphoreSlim _statusSemaphore = new SemaphoreSlim(1);
         private bool _lockInterval = false;
+        public List<Nodes> Nodes { get; private set; } = new List<Nodes>();
 
         public TfGraphQLApiClient(HttpClient client, IAppSettings appSettings)
         {
@@ -44,7 +45,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
                     try
                     {
                         EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetGridNodeStatus, Source = EventSource.TfGraphQlApiClient, Typ = EventTyp.ServerJob };
-                        var nodeResponse = await GetNodesListAsync();
+                        var nodeResponse = await GetNodesListAsync(CancellationToken.None);
                         //var farmResponse = await GetFarmDetailsAsync(farmId);
 
                         // Setzen Sie das Ergebnis des TaskCompletionSource, wenn die Semaphore noch nicht freigegeben wurde
@@ -65,31 +66,30 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             return await taskCompletionSource.Task;
         }
 
-        public async Task<ServiceResponse<List<Nodes>>> GetNodesListAsync()
+        public async Task<ServiceResponse<List<Nodes>>> GetNodesListAsync(CancellationToken cancellationToken)
         {
             string error = "";
-            List<Nodes> nodes = new List<Nodes>();
 
             foreach (var bot in _appSettings.FarmerBotSettings.Bots)
             {
-                var node = await GetNodesByFarmIdAsync(bot.FarmId);
+                var node = await GetNodesByFarmIdAsync(bot.FarmId, cancellationToken);
                 if (!node.Success)
                 {
                     error += $"Nodes From FarmerBot {bot.BotName} error: \n";
                     error += $"{node.Message}\n";
                 }
-                nodes.Add(node.Data);
+                Nodes.Add(node.Data);
             }
 
             return new ServiceResponse<List<Nodes>>
             {
-                Data = nodes,
+                Data = Nodes,
                 Message = error,
                 Success = false
             };
         }
 
-        public async Task<ServiceResponse<Nodes>> GetNodesByFarmIdAsync(int farmId)
+        public async Task<ServiceResponse<Nodes>> GetNodesByFarmIdAsync(int farmId, CancellationToken cancellationToken)
         {
             var query = @"
                 query GetNodesByFarmId($farmId: Int!) {
@@ -160,7 +160,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             {
                 var content = new StringContent(JObject.FromObject(requestBody).ToString(), Encoding.UTF8, "application/json");
                 var url = _appSettings.ThreefoldApiSettings.FirstOrDefault(g => g.Net == _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.FarmId == farmId).Network).GraphQl;
-                var response = await _client.PostAsync(url, content);
+                var response = await _client.PostAsync(url, content, cancellationToken);
 
                 if (response.IsSuccessStatusCode)
                 {

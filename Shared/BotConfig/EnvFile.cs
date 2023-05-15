@@ -16,50 +16,64 @@ namespace FarmerbotWebUI.Shared.BotConfig
         public bool IsError { get; set; } = false;
         public string ErrorMessage { get; set; } = string.Empty;
 
-        public EnvFile DeserializeEnvFile(string text)
+        public void Deserialize(string text)
         {
-            EnvFile env = new EnvFile();
             var lines = text.Split('\n');
-
-            foreach (var line in lines)
+            try
             {
-                if (string.IsNullOrWhiteSpace(line))
-                    continue;
-
-                var parts = line.Split('=');
-                if (parts.Length != 2)
-                    continue;
-
-                var key = parts[0].Trim();
-                var value = parts[1].Trim();
-
-                switch (key)
+                foreach (var line in lines)
                 {
-                    case "MNEMONIC":
-                        env.Mnemonic = value;
-                        break;
-                    case "NETWORK":
-                        env.Network = value;
-                        break;
-                    case "RELAY":
-                        env.Relay = value;
-                        break;
-                    case "SUBSTRATE":
-                        env.Substrate = value;
-                        break;
+                    if (string.IsNullOrWhiteSpace(line))
+                        continue;
+
+                    var parts = line.Split('=');
+                    if (parts.Length != 2)
+                        continue;
+
+                    var key = parts[0].Trim();
+                    var value = parts[1].Trim();
+
+                    switch (key)
+                    {
+                        case "MNEMONIC":
+                            Mnemonic = value;
+                            break;
+                        case "NETWORK":
+                            Network = value;
+                            break;
+                        case "RELAY":
+                            Relay = value;
+                            break;
+                        case "SUBSTRATE":
+                            Substrate = value;
+                            break;
+                    }
                 }
             }
-            return env;
+            catch (Exception ex)
+            {
+                IsError = true;
+                ErrorMessage = ex.Message;
+            }
         }
 
-        public string SerializeEnvFile()
+        public string Serialize()
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("MNEMONIC=" + Mnemonic);
-            sb.AppendLine("NETWORK=" + Network);
-            sb.AppendLine("RELAY=" + Relay);
-            sb.AppendLine("SUBSTRATE=" + Substrate);
-            return sb.ToString();
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("MNEMONIC=" + Mnemonic);
+                sb.AppendLine("NETWORK=" + Network);
+                sb.AppendLine("RELAY=" + Relay);
+                sb.AppendLine("SUBSTRATE=" + Substrate);
+                return sb.ToString();
+            }
+            catch (Exception ex)
+            {
+                IsError = true;
+                ErrorMessage = ex.Message;
+                return ex.Message;
+            }
         }
     }
 }

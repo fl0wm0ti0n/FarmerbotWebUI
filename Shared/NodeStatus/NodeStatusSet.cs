@@ -9,6 +9,7 @@ namespace FarmerbotWebUI.Shared.NodeStatus
         public BotNode BotNode { get; set; } = new BotNode();
         public Node GridNode { get; set; } = new Node();
         public Farm Farm { get; set; } = new Farm();
+        public string BotName { get; set; } = string.Empty;
         public DateTime LastUpdate { get; set; }
         public bool NoStatus { get; set; } = false;
         public bool IsError { get; set; }

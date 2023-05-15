@@ -17,12 +17,7 @@ namespace FarmerbotWebUI.Shared.NodeStatus
 
     public partial class BotNode
     {
-        public string Id { get; set; } = string.Empty;
         public int NodeId { get; set; }
-        public int FarmId { get; set; }
-        public int TwinId { get; set; }
-        public long GridVersion { get; set; }
-        public TimeSpan Uptime { get; set; }
         public DateTime UpdatedAt { get; set; }
         public string Status { get; set; } = string.Empty;
         public bool Online { get; set; }
@@ -50,8 +45,7 @@ namespace FarmerbotWebUI.Shared.NodeStatus
 
     public partial class BotFarm
     {
-        public string Name { get; set; } = string.Empty;
+        public string BotName { get; set; } = string.Empty;
         public long FarmId { get; set; }
-        public long TwinId { get; set; }
     }
 }
