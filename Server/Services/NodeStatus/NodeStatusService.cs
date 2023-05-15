@@ -100,7 +100,7 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
             };
         }
 
-        private async Task<NodeStatusCollection> AssembleNodeStatusCollection(List<Nodes> listOfNodeLists, CancellationToken cancellationToken)
+        private async Task<NodeStatusCollection> AssembleNodeStatusCollection(List<Nodes> listOfNodeLists,  CancellationToken cancellationToken)
         {
             foreach (Nodes rawNodeResult in listOfNodeLists)
             {
