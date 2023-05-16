@@ -4,6 +4,7 @@ global using FarmerbotWebUI.Server.Services.Settings;
 global using FarmerbotWebUI.Server.Services.TfApiClient;
 global using FarmerbotWebUI.Server.Services.NodeStatus;
 global using FarmerBotWebUI.Shared.NodeStatus;
+global using FarmerbotWebUI.Shared.BotConfig;
 global using FarmerbotWebUI.Shared;
 using FarmerbotWebUI.Server;
 using FarmerBotWebUI.Shared;
@@ -43,7 +44,7 @@ using (var scope = app.Services.CreateScope())
 using (var scope = app.Services.CreateScope())
 {
     var tfGraphQLApiClient = scope.ServiceProvider.GetRequiredService<TfGraphQLApiClient>();
-    _ = await tfGraphQLApiClient.GetNodesListAsync();
+    _ = await tfGraphQLApiClient.GetNodesListAsync(CancellationToken.None);
     _ = await tfGraphQLApiClient.StartStatusInterval();
 }
 

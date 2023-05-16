@@ -39,7 +39,7 @@ namespace FarmerBotWebUI.Shared.NodeStatus
         public string Id { get; set; } = string.Empty;
 
         [JsonProperty("nodeID")]
-        public long NodeId { get; set; }
+        public int NodeId { get; set; }
 
         [JsonProperty("uptime")]
         [JsonConverter(typeof(ParseStringConverter))]
@@ -53,7 +53,7 @@ namespace FarmerBotWebUI.Shared.NodeStatus
         public long UpdatedAt { get; set; }
 
         [JsonProperty("twinID")]
-        public long TwinId { get; set; }
+        public int TwinId { get; set; }
 
         [JsonProperty("secure")]
         public bool Secure { get; set; }
@@ -83,7 +83,7 @@ namespace FarmerBotWebUI.Shared.NodeStatus
         public long FarmingPolicyId { get; set; }
 
         [JsonProperty("farmID")]
-        public long FarmId { get; set; }
+        public int FarmId { get; set; }
 
         [JsonProperty("createdAt")]
         [JsonConverter(typeof(ParseStringConverter))]

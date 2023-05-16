@@ -15,7 +15,7 @@
     <RadzenSplitterPane Size="40%" Min="10%" Max="70%">
         <RadzenSplitter Orientation="Orientation.Vertical" Collapse=@OnCollapse Expand=@OnExpand>
             @*### top left - On/off and farmerbot status section*@
-            <RadzenSplitterPane Size="30%" Min="25%" Max="60%" Style="background-color: rgb(137, 174, 192); display: flex; justify-content: left; align-items:start">
+            <RadzenSplitterPane Size="45%" Min="35%" Max="60%" Style="background-color: rgb(137, 174, 192); display: flex; justify-content: left; align-items:start">
                 <RadzenStack Style="margin-left: 20px; margin-top: 20px" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
                     @foreach (var botStatus in DockerService.ActualFarmerBotStatus)
                     {

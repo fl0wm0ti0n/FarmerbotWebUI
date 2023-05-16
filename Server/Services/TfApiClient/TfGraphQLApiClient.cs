@@ -195,7 +195,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
 
         }
 
-        public async Task<ServiceResponse<Farms>> GetFarmDetailsAsync(int farmId)
+        public async Task<ServiceResponse<Farms>> GetFarmDetailsAsync(int farmId, CancellationToken cancellationToken)
         {
             var query = @"
                 query GetFarmsByFarmId($farmId: Int!) {

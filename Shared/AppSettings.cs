@@ -82,6 +82,9 @@ namespace FarmerBotWebUI.Shared
         [JsonProperty("FarmerBotStatusInterval")]
         public int FarmerBotStatusInterval { get; set; } = 60;
 
+        [JsonProperty("NodeStatusInterval")]
+        public int NodeStatusInterval { get; set; } = 60;
+
         [JsonProperty("Bots")]
         public List<BotSetting> Bots { get; set; }
     }
