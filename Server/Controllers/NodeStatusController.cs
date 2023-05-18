@@ -17,21 +17,21 @@ namespace FarmerbotWebUI.Server.Controllers
             _nodeStatusService = nodeStatusService;
         }
 
-        [HttpGet("status/list")]
+        [HttpGet("nodes/list")]
         public async Task<ActionResult<ServiceResponse<List<NodeStatusCollection>>>> GetNodeStatusListAsync(CancellationToken cancellationToken)
         {
             var output = await _nodeStatusService.GetNodeStatusListAsync(cancellationToken);
             return Ok(output);
         }
 
-        [HttpGet("status")]
+        [HttpGet("nodes")]
         public async Task<ActionResult<ServiceResponse<NodeStatusCollection>>> GetNodeStatusCollectionAsync(string botName, CancellationToken cancellationToken)
         {
             var output = await _nodeStatusService.GetNodeStatusCollectionAsync(botName, cancellationToken);
             return Ok(output);
         }
 
-        [HttpGet("status/{nodeId}")]
+        [HttpGet("nodes/{nodeId}")]
         public async Task<ActionResult<ServiceResponse<NodeStatusSet>>> GetNodeStatusAsync(int nodeId, CancellationToken cancellationToken)
         {
             var output = await _nodeStatusService.GetNodeStatusAsync(nodeId, cancellationToken);

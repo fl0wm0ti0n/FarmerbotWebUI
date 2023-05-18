@@ -71,7 +71,9 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
             else if (await CheckGridNodesAreThere(cancellationToken))
             {
                 // get the right Node-list with farmId which is present in botconfig
-                Nodes rawNodeResult = _tfGraphQLApiClient.Nodes.FirstOrDefault(x => x.Data.Nodes.Find(n => n.FarmId == bot.FarmId).FarmId == bot.FarmId);
+                Nodes rawNodeResult = _tfGraphQLApiClient.RawApiData.FirstOrDefault(r => r.FarmId == bot.FarmId);
+
+
                 if (rawNodeResult == null)
                 {
                     error = true;
@@ -99,7 +101,7 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
                         // build the NodeStatusSet
                         foreach (var gridNode in gridNodes)
                         {
-                            NodeDefinition nodeDefinition = markdownConfig.NodeDefinitions.FirstOrDefault(x => x.Id == int.Parse(gridNode.Id));
+                            NodeDefinition nodeDefinition = markdownConfig.NodeDefinitions.FirstOrDefault(x => x.Id == gridNode.NodeId);
                             // if nodeDefinition is null, then the node is not configured in the markdown config
                             bool notConfigured = false;
                             if (nodeDefinition == null)
@@ -111,7 +113,7 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
                             {
                                 BotNode = new BotNode()
                                 {
-                                    NodeId = int.Parse(gridNode.Id),
+                                    NodeId = gridNode.NodeId,
                                     NodeDefinition = nodeDefinition,
                                     Online = true, // TODO: check if node is online from farmerbot.log
                                     Status = "", // TODO: check status from farmerbot.log
@@ -160,98 +162,9 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
             throw new NotImplementedException();
         }
 
-        private async Task<NodeStatusCollection> AssembleNodeStatusCollection(BotSetting bot, CancellationToken cancellationToken)
-        {
-            bool Error = false;
-            string ErrorMessage = "";
-            bool noStatus = false;
-            List<NodeStatusSet> nodeStatusSets = new List<NodeStatusSet>();
-
-            if (await CheckGridNodesAreThere(cancellationToken))
-            {
-                // get the right Node-list with farmId which is present in botconfig
-                Nodes rawNodeResult = _tfGraphQLApiClient.Nodes.FirstOrDefault(x => x.Data.Nodes.Find(n => n.FarmId == bot.FarmId).FarmId == bot.FarmId);
-                if (rawNodeResult == null)
-                {
-                    Error = true;
-                    noStatus = true;
-                    ErrorMessage = $"Didn't find Nodes on Grid with given FarmId {bot.FarmId} from Bot {bot.BotName}.";
-                    // TODO: Send to LogService
-                }
-                else
-                {
-                    var gridNodes = rawNodeResult.Data.Nodes;
-
-                    // get the right nodeDefinitions with botName which is present in botconfig
-                    var result = await _fileService.GetMarkdownConfigAsync(bot.BotName, cancellationToken);
-                    if(!result.Success)
-                    {
-                        Error = true;
-                        noStatus = true;
-                        ErrorMessage = $"No MarkdownConfig for Bot {bot.BotName}.";
-                    }
-                    else
-                    {
-                        var markdownConfig = result.Data;
-                        // TODO: add also Live node status and errors from farmerbot.log or 
-
-                        // build the NodeStatusSet
-                        foreach (var gridNode in gridNodes)
-                        {
-                            NodeDefinition nodeDefinition = markdownConfig.NodeDefinitions.FirstOrDefault(x => x.Id == int.Parse(gridNode.Id));
-                            // if nodeDefinition is null, then the node is not configured in the markdown config
-                            bool notConfigured = false;
-                            if (nodeDefinition == null)
-                            {
-                                notConfigured = true;
-                            }
-
-                            nodeStatusSets.Add(new NodeStatusSet()
-                            {
-                                BotNode = new BotNode()
-                                {
-                                    NodeId = int.Parse(gridNode.Id),
-                                    NodeDefinition = nodeDefinition,
-                                    Online = true, // TODO: check if node is online from farmerbot.log
-                                    Status = "", // TODO: check status from farmerbot.log
-                                    UpdatedAt = DateTime.UtcNow
-                                },
-                                GridNode = gridNode,
-                                Farm = new Farm()
-                                {
-                                    FarmId = gridNode.FarmId, // TODO: get Farm also from apiService
-                                },
-                                BotName = bot.BotName,
-                                NotConfigured = notConfigured,
-                                LastUpdate = DateTime.UtcNow,
-                                NoStatus = false,
-                                IsError = false,
-                                ErrorMessage = ""
-                            });
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Error = true;
-                noStatus = true;
-                ErrorMessage = "GridNodes are not available";
-                // TODO: Send to LogService
-            }
-
-            return new NodeStatusCollection()
-            {
-                BotName = bot.BotName,
-                NodeStatusSets = nodeStatusSets,
-                LastUpdate = DateTime.UtcNow,
-                NoStatus = noStatus
-            };
-        }
-
         private async Task<bool> CheckGridNodesAreThere (CancellationToken cancellationToken)
         {
-            if (_tfGraphQLApiClient.Nodes.Count == 0)
+            if (_tfGraphQLApiClient.RawApiData.Count == 0)
             {
                 var apiResult = await _tfGraphQLApiClient.GetNodesListAsync(cancellationToken);
                 if (apiResult.Success)

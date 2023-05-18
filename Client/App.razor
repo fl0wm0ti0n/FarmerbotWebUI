@@ -1,6 +1,7 @@
 ﻿@using FarmerBotWebUI.Shared;
 @inject ISettingsService SettingsService
 @inject IDockerService DockerService
+@inject INodeStatusService NodeStatusService
 @inject IAppSettings AppSettings
 
 <Router AppAssembly="@typeof(App).Assembly">
@@ -25,7 +26,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        AppSettings.OnAppSettingsChanged += UpdateAppSettings;
+        AppSettings.OnAppSettingsChanged += StartServices;
 
         // initialize routines
 
@@ -35,14 +36,13 @@
         bool settingsLoaded = false;
         while (currentRetry < maxRetries && !settingsLoaded)
         {
-            EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetSettings, Source = EventSource.Startup, Typ = EventTyp.ClientJob };
+            EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetSettings, Source = EventSource.ClientStartup, Typ = EventTyp.ClientJob };
             var response = await SettingsService.GetConfigurationObject(eventSourceActionId);
             if (response.Success)
             {
-                AppSettings = response.Data;
                 settingsLoaded = true;
-                _ = await SettingsService.StartStatusInterval();
-                await InitializeDocker();
+                SettingsService.StartStatusInterval();
+                //InitializeDocker();
             }
             else
             {
@@ -56,22 +56,35 @@
         }
     }
 
-    private async Task InitializeDocker()
+    private void InitializeDockerService()
     {
-        if (AppSettings.DockerSettings.DockerEndpointWindows != "" || AppSettings.DockerSettings.DockerEndpointWindows != "")
+        if (!string.IsNullOrEmpty(AppSettings.DockerSettings.DockerEndpointWindows) || !string.IsNullOrEmpty(AppSettings.DockerSettings.DockerEndpointLinux) )
         {
-            await DockerService.StartStatusInterval();
+            EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.FarmerBotStatus, Source = EventSource.ClientStartup, Typ = EventTyp.ClientJob };
+            DockerService.GetComposeStatusListAsync(eventSourceActionId);
+            DockerService.StartStatusInterval();
         }
     }
 
-    private void UpdateAppSettings(object sender, AppSettings newAppSettings)
+    private void InitializeNodeStatusService()
     {
-        AppSettings = newAppSettings;
-        _ = InitializeDocker();
+        if (AppSettings.ThreefoldApiSettings.Count > 0 || AppSettings.FarmerBotSettings.Bots.Count > 0)
+        {
+            EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetNodeStatus, Source = EventSource.ClientStartup, Typ = EventTyp.ClientJob };
+            NodeStatusService.GetNodeStatusListAsync(eventSourceActionId);
+            NodeStatusService.StartStatusInterval();
+        }
+    }
+
+    private void StartServices(object sender, AppSettings newAppSettings)
+    {
+        //AppSettings.SaveSettings(newAppSettings);
+        InitializeDockerService();
+        InitializeNodeStatusService();
     }
 
     public void Dispose()
     {
-        AppSettings.OnAppSettingsChanged -= UpdateAppSettings;
+        AppSettings.OnAppSettingsChanged -= StartServices;
     }
 }

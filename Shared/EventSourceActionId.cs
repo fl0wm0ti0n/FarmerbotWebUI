@@ -31,13 +31,18 @@ namespace FarmerbotWebUI.Shared
 public enum EventSource
     {
         Default,
+        Unknown,
         MainLayout,
         Dashboard,
-        EventService,
+        EventConsoleService,
         SettingsService,
         DockerService,
+        NodeStatusService,
+        BotStatusService,
+        FileService,
         TfGraphQlApiClient,
-        Startup
+        ClientStartup,
+        ServerStartup
     }
 
     public enum EventAction
@@ -53,7 +58,11 @@ public enum EventSource
         FarmerBotLivelog,
         GetGridNodeStatus,
         GetGridFarmStatus,
+        GetNodeStatus,
+        GetFiles,
+        SetFiles,
         GetSettings,
         SetSettings,
+
     }
 }

@@ -25,6 +25,15 @@ namespace FarmerBotWebUI.Shared.NodeStatus
     {
         [JsonProperty("data")]
         public Data Data { get; set; } = new Data();
+
+        [JsonIgnore]
+        public bool IsError { get; set; }
+
+        [JsonIgnore]
+        public string ErrorMessage { get; set; } = string.Empty;
+
+        [JsonIgnore]
+        public int FarmId { get; set; }
     }
 
     public partial class Data

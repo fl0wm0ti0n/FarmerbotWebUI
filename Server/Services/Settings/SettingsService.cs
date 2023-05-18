@@ -14,11 +14,11 @@ namespace FarmerbotWebUI.Server.Services.Settings
         private IAppSettings _appSettings;
 
         public IConfiguration Configuration { get; set; }
-        public AppSettings AppSetting { get; private set; } = new AppSettings();
+        //public AppSettings AppSetting { get; private set; } = new AppSettings();
 
         public SettingsService(IAppSettings appSettings)
         {
-            _configPath = "appsettings.json";
+            _configPath = "appsettings.Development.json";
             _appSettings = appSettings;
             //try
             //{
@@ -39,9 +39,9 @@ namespace FarmerbotWebUI.Server.Services.Settings
                 .AddJsonFile(_configPath, optional: false, reloadOnChange: true)
                 .Build();
                 _appSettings.SaveSettings(Configuration.Get<AppSettings>());
-                //_appSettings = Configuration.Get<AppSettings>();
-                AppSetting = Configuration.Get<AppSettings>();
-                _appSettings.InvokeOnAppSettingsChanged(AppSetting);
+                _appSettings = Configuration.Get<AppSettings>();
+                //AppSetting.SaveSettings(Configuration.Get<AppSettings>());
+                _appSettings.InvokeOnAppSettingsChanged();
             });
         }
 
@@ -104,7 +104,7 @@ namespace FarmerbotWebUI.Server.Services.Settings
                 ReloadConfiguration();
                 return new ServiceResponse<AppSettings>
                 {
-                    Data = AppSetting,
+                    Data = (AppSettings)_appSettings,
                     Message = "Success getting configuration",
                     Success = true,
                 };
@@ -113,7 +113,7 @@ namespace FarmerbotWebUI.Server.Services.Settings
             {
                 return new ServiceResponse<AppSettings>
                 {
-                    Data = AppSetting, 
+                    Data = (AppSettings)_appSettings, 
                     Message = ex.Message,
                     Success = false,
                 };
@@ -130,7 +130,7 @@ namespace FarmerbotWebUI.Server.Services.Settings
                 ReloadConfiguration();
                 return new ServiceResponse<AppSettings>
                 {
-                    Data = AppSetting,
+                    Data = (AppSettings)_appSettings,
                     Message = "New configuration saved",
                     Success = true,
                 };
@@ -140,7 +140,7 @@ namespace FarmerbotWebUI.Server.Services.Settings
                 // TODO: log error
                 return new ServiceResponse<AppSettings>
                 {
-                    Data = AppSetting,
+                    Data = (AppSettings)_appSettings,
                     Message = ex.Message,
                     Success = false,
                 };

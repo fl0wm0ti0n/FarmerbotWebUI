@@ -42,9 +42,9 @@ namespace FarmerBotWebUI.Shared
 
         public event EventHandler<AppSettings> OnAppSettingsChanged;
 
-        public void InvokeOnAppSettingsChanged(AppSettings appSettings)
+        public void InvokeOnAppSettingsChanged()
         {
-            OnAppSettingsChanged?.Invoke(this, appSettings);
+            OnAppSettingsChanged?.Invoke(this, this);
         }
 
         public void SaveSettings(AppSettings appSettings)
@@ -129,6 +129,9 @@ namespace FarmerBotWebUI.Shared
 
         [JsonProperty("ServerUpdateInterval")]
         public int ServerUpdateInterval { get; set; } = 60;
+
+        [JsonProperty("ApiCallInterval")]
+        public int ApiCallInterval { get; set; } = 60;
     }
 
     public partial class NotificationSettings

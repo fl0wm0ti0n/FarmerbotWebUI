@@ -33,7 +33,7 @@ namespace FarmerbotWebUI.Client.Services.EventConsole
 
         private void UpdateAppSettings(object sender, AppSettings newAppSettings)
         {
-            _appSettings = newAppSettings;
+            _appSettings.SaveSettings(newAppSettings);
         }
 
         public EventSourceActionId AddMessage(EventMessage message)

@@ -1,10 +1,11 @@
 ﻿using FarmerbotWebUI.Client.Shared;
 using FarmerbotWebUI.Shared;
+using FarmerbotWebUI.Shared.BotConfig;
 using FarmerBotWebUI.Shared;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Threading;
+using System.Timers;
 
 namespace FarmerbotWebUI.Client.Services.Settings
 {
@@ -12,78 +13,68 @@ namespace FarmerbotWebUI.Client.Services.Settings
     {
         private readonly HttpClient _httpClient;
         private readonly IEventConsoleService _eventConsole;
-        private SemaphoreSlim _statusSemaphore = new SemaphoreSlim(1);
-        private bool _lockInterval = false;
         private IAppSettings _appSettings;
+        private System.Timers.Timer _timer;
 
         public event EventHandler<AppSettings> OnAppSettingsChanged;
-        public AppSettings AppSetting { get; private set; } = new AppSettings();
 
         public SettingsService(HttpClient httpClient, IEventConsoleService eventConsole, IAppSettings appSettings)
         {
             _httpClient = httpClient;
             _eventConsole = eventConsole;
-            _appSettings = appSettings;
+            _appSettings = appSettings; 
+            _appSettings.OnAppSettingsChanged += UpdateAppSettings;
+
+            _timer = new System.Timers.Timer();
+            _timer.Interval = _appSettings.GeneralSettings.ServerUpdateInterval * 1000; // Set the interval to 1 second
+            _timer.Elapsed += OnTimerElapsed;
+            _timer.AutoReset = true;
         }
 
-        public async Task<ServiceResponse<AppSettings>> StartStatusInterval()
+        private void UpdateAppSettings(object sender, AppSettings newAppSettings)
         {
-            TaskCompletionSource<ServiceResponse<AppSettings>> taskCompletionSource = new TaskCompletionSource<ServiceResponse<AppSettings>>();
-            SemaphoreSlim firstExecutionSemaphore = new SemaphoreSlim(0, 1);
+            _appSettings.SaveSettings(newAppSettings);
+            _timer.Interval = _appSettings.GeneralSettings.ServerUpdateInterval * 1000; // Set the interval to 1 second
+        }
 
-            Timer timer = new Timer(async (e) =>
-            {
-                if (!_lockInterval)
-                {
-                    await _statusSemaphore.WaitAsync();
-                    try
-                    {
-                        EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetSettings, Source = EventSource.SettingsService, Typ = EventTyp.ClientJob };
-                        var response = await GetConfigurationObject(eventSourceActionId);
+        public void StartStatusInterval()
+        {
+            _timer.Interval = _appSettings.GeneralSettings.ServerUpdateInterval * 1000; // Set the interval to 1 second
+            _timer.Start();
+        }
 
-                        // Setzen Sie das Ergebnis des TaskCompletionSource, wenn die Semaphore noch nicht freigegeben wurde
-                        if (firstExecutionSemaphore.CurrentCount == 0)
-                        {
-                            taskCompletionSource.SetResult(response);
-                            firstExecutionSemaphore.Release();
-                        }
-                    }
-                    finally
-                    {
-                        _statusSemaphore.Release();
-                    }
-                }
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_appSettings.GeneralSettings.ServerUpdateInterval));
-
-            // Warten Sie auf das Ergebnis des TaskCompletionSource, bevor Sie die Antwort zurückgeben
-            return await taskCompletionSource.Task;
+        private async void OnTimerElapsed(object sender, ElapsedEventArgs e)
+        {
+            ServiceResponse<AppSettings> response = new ServiceResponse<AppSettings>();
+            EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetSettings, Source = EventSource.SettingsService, Typ = EventTyp.ClientJob };
+            response = await GetConfigurationObject(eventSourceActionId);
         }
 
         public async Task<ServiceResponse<AppSettings>> GetConfigurationObject(EventSourceActionId id)
         {
+            _timer.Stop();
+
             var title = "Getting Settings";
             var message = $"Getting Settings...";
             var GuiAndProgress = id.Typ == EventTyp.UserAction ? true : false;
             id = _eventConsole.AddMessage(id, title, message, GuiAndProgress, false, GuiAndProgress, LogLevel.Information, EventResult.Valueless);
 
-            _lockInterval = true;
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<AppSettings>>("api/settings/getsettings");
             if (response.Success)
             {
-                _appSettings = response.Data;
-                AppSetting = response.Data;
-                _appSettings.InvokeOnAppSettingsChanged(AppSetting);
+                _appSettings.SaveSettings(response.Data);
+                _appSettings.InvokeOnAppSettingsChanged();
                 _eventConsole.UpdateMessage(id, title, response.Message, false, true, GuiAndProgress, LogLevel.Information, EventResult.Successfully);
             }
             else if (!response.Success)
             {
                 _appSettings = response.Data;
-                AppSetting = response.Data;
-                OnAppSettingsChanged?.Invoke(this, response.Data);
+                //OnAppSettingsChanged?.Invoke(this, response.Data);
                 message = $"Error getting Settings...\n{response.Message}";
                 _eventConsole.UpdateMessage(id, title, message, false, true, true, LogLevel.Error, EventResult.Unsuccessfully);
             }
-            _lockInterval = false;
+
+            _timer.Start();
             return response;
         }
 
@@ -97,9 +88,8 @@ namespace FarmerbotWebUI.Client.Services.Settings
             var response = await _httpClient.GetFromJsonAsync<ServiceResponse<AppSettings>>("api/settings/setsettings");
             if (response.Success)
             {
-                _appSettings = response.Data;
-                AppSetting = response.Data;
-                _appSettings.InvokeOnAppSettingsChanged(AppSetting);
+                _appSettings.SaveSettings(response.Data);
+                _appSettings.InvokeOnAppSettingsChanged();
                 _eventConsole.UpdateMessage(id, title, response.Message, false, true, GuiAndProgress, LogLevel.Information, EventResult.Successfully);
             }
             else if (!response.Success)

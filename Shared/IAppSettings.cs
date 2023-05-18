@@ -19,7 +19,7 @@ namespace FarmerBotWebUI.Shared
         SecuritySettings SecuritySettings { get; set; }
         NotificationSettings NotificationSettings { get; set; }
         event EventHandler<AppSettings> OnAppSettingsChanged;
-        void InvokeOnAppSettingsChanged(AppSettings appSettings);
+        void InvokeOnAppSettingsChanged();
         void SaveSettings(AppSettings appSettings);
     }
 }

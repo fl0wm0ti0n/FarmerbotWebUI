@@ -20,7 +20,7 @@ builder.Services.AddScoped<INodeStatusService, NodeStatusService>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<IFileService, FilesService>();
 builder.Services.AddScoped<IDockerService, DockerService>();
-builder.Services.AddScoped<IAppSettings, AppSettings>();
+builder.Services.AddSingleton<IAppSettings, AppSettings>();
 builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<TooltipService>();

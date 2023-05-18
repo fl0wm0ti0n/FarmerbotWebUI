@@ -17,7 +17,7 @@
             @*### top left - On/off and farmerbot status section*@
             <RadzenSplitterPane Size="45%" Min="35%" Max="60%" Style="background-color: rgb(137, 174, 192); display: flex; justify-content: left; align-items:start">
                 <RadzenStack Style="margin-left: 20px; margin-top: 20px" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
-                    @foreach (var botStatus in DockerService.ActualFarmerBotStatus)
+                    @foreach (var botStatus in DockerService.ActualFarmerBotStatusList)
                     {
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
                             <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.NoWrap">
@@ -35,7 +35,7 @@
             @*### bottom left - no idea by now section*@
             <RadzenSplitterPane style="background-color: rgb(137, 174, 192); display: flex; justify-content: left; align-items:start; ">
                 <RadzenStack Style="margin-left: 20px; margin-top: 20px" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
-                    @foreach (var botStatus in DockerService.ActualFarmerBotStatus)
+                    @foreach (var botStatus in DockerService.ActualFarmerBotStatusList)
                     {
                         <SetupStatusPage botStatus=@botStatus />
                     }
@@ -48,7 +48,7 @@
             @*### full right - Node list and stati*@
             <RadzenSplitterPane style="display: flex; justify-content: center; align-items: center;">
                 <RadzenStack Style="margin-left: 20px; margin-top: 20px" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
-@*                    @foreach (var botStatus in DockerService.ActualFarmerBotStatus)
+                    @*@foreach (var botStatus in DockerService.ActualFarmerBotStatus)
                     {
                         //<NodesStatus nodeStatus=@ />
                     }*@

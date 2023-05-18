@@ -9,7 +9,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
 {
     public interface ITfGraphQLApiClient
     {
-        List<Nodes> Nodes { get; }
+        List<Nodes> RawApiData { get; }
         Task<ServiceResponse<List<Nodes>>> StartStatusInterval();
         Task<ServiceResponse<Nodes>> GetNodesByFarmIdAsync(int farmId, CancellationToken cancellationToken);
         Task<ServiceResponse<List<Nodes>>> GetNodesListAsync(CancellationToken cancellationToken);

@@ -4,9 +4,9 @@ namespace FarmerbotWebUI.Client.Services.NodeStatus
 {
     public interface INodeStatusService
     {
-        Task<ServiceResponse<List<NodeStatusCollection>>> StartStatusIntervalAsync(CancellationToken cancellationToken);
-        Task<ServiceResponse<NodeStatusSet>> GetNodeStatusAsync(int nodeId, CancellationToken cancellationToken);
-        Task<ServiceResponse<List<NodeStatusCollection>>> GetNodeStatusListAsync(CancellationToken cancellationToken);
-        Task<ServiceResponse<NodeStatusCollection>> GetNodeStatusCollectionAsync(CancellationToken cancellationToken);
+        void StartStatusInterval();
+        Task<ServiceResponse<NodeStatusSet>> GetNodeStatusAsync(int nodeId, EventSourceActionId id);
+        Task<ServiceResponse<List<NodeStatusCollection>>> GetNodeStatusListAsync(EventSourceActionId id);
+        Task<ServiceResponse<NodeStatusCollection>> GetNodeStatusCollectionAsync(EventSourceActionId id);
     }
 }

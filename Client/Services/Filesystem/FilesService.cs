@@ -25,9 +25,10 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
             _appSettings = appSettings;
             _appSettings.OnAppSettingsChanged += UpdateAppSettings;
         }
+
         private void UpdateAppSettings(object sender, AppSettings newAppSettings)
         {
-            _appSettings = newAppSettings;
+            _appSettings.SaveSettings(newAppSettings);
         }
 
         #region Misc

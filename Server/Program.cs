@@ -21,11 +21,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IAppSettings, AppSettings>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
 
-builder.Services.AddHttpClient<TfGraphQLApiClient>(client =>
-{
-    client.BaseAddress = new Uri("https://graphql.qa.grid.tf/graphql");
-});
-
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IDockerService, DockerService>();
 builder.Services.AddScoped<ITfGraphQLApiClient, TfGraphQLApiClient>();
@@ -35,16 +30,16 @@ var app = builder.Build();
 
 // Startup 
 
-using (var scope = app.Services.CreateScope())
+using (var scope1 = app.Services.CreateScope())
 {
-    var settingsService = scope.ServiceProvider.GetRequiredService<ISettingsService>();
+    var settingsService = scope1.ServiceProvider.GetRequiredService<ISettingsService>();
     _ = await settingsService.ReloadConfiguration();
-}
 
-using (var scope = app.Services.CreateScope())
+}
+using (var scope2 = app.Services.CreateScope())
 {
-    var tfGraphQLApiClient = scope.ServiceProvider.GetRequiredService<TfGraphQLApiClient>();
-    _ = await tfGraphQLApiClient.GetNodesListAsync(CancellationToken.None);
+    var tfGraphQLApiClient = scope2.ServiceProvider.GetRequiredService<ITfGraphQLApiClient>();
+    //_ = await tfGraphQLApiClient.GetNodesListAsync(CancellationToken.None);
     _ = await tfGraphQLApiClient.StartStatusInterval();
 }
 

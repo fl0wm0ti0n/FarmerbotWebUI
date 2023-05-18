@@ -18,13 +18,13 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
         private IAppSettings _appSettings;
         private SemaphoreSlim _statusSemaphore = new SemaphoreSlim(1);
         private bool _lockInterval = false;
-        public List<Nodes> Nodes { get; private set; } = new List<Nodes>();
+        public List<Nodes> RawApiData { get; private set; } = new List<Nodes>();
 
-        public TfGraphQLApiClient(HttpClient client, IAppSettings appSettings)
+        public TfGraphQLApiClient(IAppSettings appSettings)
         {
-            _client = client;
             _appSettings = appSettings;
             _appSettings.OnAppSettingsChanged += UpdateAppSettings;
+            _client = new HttpClient();
         }
 
         private void UpdateAppSettings(object sender, AppSettings newAppSettings)
@@ -39,7 +39,8 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
 
             Timer timer = new Timer(async (e) =>
             {
-                if (!_lockInterval)
+              Console.WriteLine("TfGraphQLApiClient-Timer-Call");
+              if (!_lockInterval)
                 {
                     await _statusSemaphore.WaitAsync();
                     try
@@ -60,7 +61,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
                         _statusSemaphore.Release();
                     }
                 }
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_appSettings.GeneralSettings.ServerUpdateInterval));
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_appSettings.GeneralSettings.ApiCallInterval));
 
             // Warten Sie auf das Ergebnis des TaskCompletionSource, bevor Sie die Antwort zurückgeben
             return await taskCompletionSource.Task;
@@ -72,18 +73,19 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
 
             foreach (var bot in _appSettings.FarmerBotSettings.Bots)
             {
-                var node = await GetNodesByFarmIdAsync(bot.FarmId, cancellationToken);
-                if (!node.Success)
+                var nodes = await GetNodesByFarmIdAsync(bot.FarmId, cancellationToken);
+                if (!nodes.Success)
                 {
                     error += $"Nodes From FarmerBot {bot.BotName} error: \n";
-                    error += $"{node.Message}\n";
+                    error += $"{nodes.Message}\n";
                 }
-                Nodes.Add(node.Data);
+                nodes.Data.FarmId = bot.FarmId;
+                RawApiData.Add(nodes.Data);
             }
 
             return new ServiceResponse<List<Nodes>>
             {
-                Data = Nodes,
+                Data = RawApiData,
                 Message = error,
                 Success = false
             };
