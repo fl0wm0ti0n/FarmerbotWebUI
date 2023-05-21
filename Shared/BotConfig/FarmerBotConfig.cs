@@ -186,11 +186,11 @@ namespace FarmerbotWebUI.Shared.BotConfig
     {
         public int Id { get; set; }
         public int TwinId { get; set; }
-        public bool? NeverShutdown { get; set; }
-        public int? CpuOverProvision { get; set; }
-        public bool? PublicConfig { get; set; }
+        public bool? NeverShutdown { get; set; } = false;
+        public int? CpuOverProvision { get; set; } 
+        public bool? PublicConfig { get; set; } = false;
         public int? Dedicated { get; set; }
-        public bool? Certified { get; set; }
+        public bool? Certified { get; set; } = false;
     }
 
     //## Farm Configuration

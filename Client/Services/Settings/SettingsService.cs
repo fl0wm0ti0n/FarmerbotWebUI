@@ -99,5 +99,11 @@ namespace FarmerbotWebUI.Client.Services.Settings
             }
             return response;
         }
+
+        public void Dispose()
+        {
+            _appSettings.OnAppSettingsChanged -= UpdateAppSettings;
+            _timer.Dispose();
+        }
     }
 }

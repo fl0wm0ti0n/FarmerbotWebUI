@@ -61,11 +61,11 @@
 
     protected override void OnInitialized()
     {
-        DockerService.StatusChanged += StateHasChanged;
+        //DockerService.StatusChanged += StateHasChanged;
     }
 
     public void Dispose()
     {
-        DockerService.StatusChanged -= StateHasChanged;
+        //DockerService.StatusChanged -= StateHasChanged;
     }
 }

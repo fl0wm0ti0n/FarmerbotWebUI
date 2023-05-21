@@ -14,7 +14,8 @@ namespace FarmerbotWebUI.Client.Services.NodeStatus
         private System.Timers.Timer _timer;
 
         public event Action StatusChanged = () => { };
-        List<NodeStatusCollection> ActualNodeStatusCollectionList = new List<NodeStatusCollection>();
+        public List<NodeStatusCollection> ActualNodeStatusCollectionList { get; private set; } = new List<NodeStatusCollection>();
+
         public NodeStatusService(HttpClient httpClient, IEventConsoleService eventConsole, IAppSettings appSettings)
         {
             _httpClient = httpClient;
@@ -89,6 +90,12 @@ namespace FarmerbotWebUI.Client.Services.NodeStatus
 
             _timer.Start();
             return response;
+        }
+
+        public void Dispose()
+        {
+            _appSettings.OnAppSettingsChanged -= UpdateAppSettings;
+            _timer.Dispose();
         }
     }
 }

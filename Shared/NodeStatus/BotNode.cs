@@ -20,8 +20,7 @@ namespace FarmerbotWebUI.Shared.NodeStatus
     {
         public int NodeId { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public string Status { get; set; } = string.Empty;
-        public bool Online { get; set; }
+        public Status Status { get; set; }
         public NodeDefinition NodeDefinition { get; set; } = new NodeDefinition();
     }
 
@@ -30,4 +29,17 @@ namespace FarmerbotWebUI.Shared.NodeStatus
         public string BotName { get; set; } = string.Empty;
         public long FarmId { get; set; }
     }
+
+    public enum Status { 
+        up, 
+        down,
+        unknown,
+        error,
+        starting,
+        stopping,
+        restarting,
+        stuck,
+        pending,
+        paused,
+    };
 }

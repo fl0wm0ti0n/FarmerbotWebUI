@@ -112,6 +112,33 @@ namespace FarmerBotWebUI.Shared.NodeStatus
 
         [JsonProperty("certification")]
         public string Certification { get; set; } = string.Empty;
+
+        public DateTime GetUpdatedAt()
+        {
+            return GetDateTimeFromUnixTime(UpdatedAt);
+        }
+
+        public DateTime GetCreatedAt()
+        {
+            return GetDateTimeFromUnixTime(CreatedAt);
+        }
+
+        public DateTime GetCreated()
+        {
+            return GetDateTimeFromUnixTime(Created);
+        }
+
+        public TimeSpan GetUptime()
+        {
+            return TimeSpan.FromSeconds(Uptime);
+        }
+
+        private DateTime GetDateTimeFromUnixTime(long unixTimeInSeconds)
+        {
+            DateTime startDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            DateTime date = startDateTime.AddSeconds(unixTimeInSeconds);
+            return date;
+        }
     }
 
     public partial class Interface

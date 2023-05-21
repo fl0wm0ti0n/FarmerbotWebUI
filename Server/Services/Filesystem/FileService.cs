@@ -5,14 +5,21 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
 {
     public class FileService : IFileService
     {
-        private readonly IAppSettings _appSettings;
+        private IAppSettings _appSettings;
 
         public FileService(IAppSettings appSettings)
         {
             _appSettings = appSettings;
+            _appSettings.OnAppSettingsChanged += UpdateAppSettings;
         }
 
         #region Private
+
+        private void UpdateAppSettings(object sender, AppSettings appSettings)
+        {
+            _appSettings = appSettings;
+        }
+
         private async Task<ServiceResponse<string>> HandleFileOperationAsync(string botName, Func<BotSetting, string> fileNameFunc, Func<string, CancellationToken, Task<string>> fileOperationFunc, CancellationToken cancellationToken)
         {
             string error = "";
@@ -444,5 +451,10 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
             return response;
         }
         #endregion FarmerBot
+
+        public void Dispose()
+        {
+            _appSettings.OnAppSettingsChanged -= UpdateAppSettings;
+        }
     }
 }

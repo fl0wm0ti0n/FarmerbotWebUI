@@ -81,6 +81,7 @@
         //AppSettings.SaveSettings(newAppSettings);
         InitializeDockerService();
         InitializeNodeStatusService();
+        AppSettings.OnAppSettingsChanged -= StartServices;
     }
 
     public void Dispose()

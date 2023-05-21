@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FarmerbotWebUI.Client.Services.EventConsole;
 using FarmerBotWebUI.Shared;
+using FarmerBotWebUI.Shared.NodeStatus;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YamlDotNet.Core.Tokens;
@@ -39,7 +40,6 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
 
             Timer timer = new Timer(async (e) =>
             {
-              Console.WriteLine("TfGraphQLApiClient-Timer-Call");
               if (!_lockInterval)
                 {
                     await _statusSemaphore.WaitAsync();
@@ -69,15 +69,16 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
 
         public async Task<ServiceResponse<List<Nodes>>> GetNodesListAsync(CancellationToken cancellationToken)
         {
-            string error = "";
-
+            string errorMessage = "";
+            bool error = false;
             foreach (var bot in _appSettings.FarmerBotSettings.Bots)
             {
                 var nodes = await GetNodesByFarmIdAsync(bot.FarmId, cancellationToken);
                 if (!nodes.Success)
                 {
-                    error += $"Nodes From FarmerBot {bot.BotName} error: \n";
-                    error += $"{nodes.Message}\n";
+                    errorMessage += $"Nodes From FarmerBot {bot.BotName} error: \n";
+                    errorMessage += $"{nodes.Message}\n";
+                    error = true;
                 }
                 nodes.Data.FarmId = bot.FarmId;
                 RawApiData.Add(nodes.Data);
@@ -86,8 +87,8 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             return new ServiceResponse<List<Nodes>>
             {
                 Data = RawApiData,
-                Message = error,
-                Success = false
+                Message = errorMessage,
+                Success = !error
             };
         }
 

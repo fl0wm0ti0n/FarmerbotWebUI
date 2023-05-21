@@ -90,7 +90,6 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
                     if (!result.Success)
                     {
                         error = true;
-                        noStatus = true;
                         errorMessage = $"No MarkdownConfig for Bot {bot.BotName}.";
                     }
                     else
@@ -115,8 +114,7 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
                                 {
                                     NodeId = gridNode.NodeId,
                                     NodeDefinition = nodeDefinition,
-                                    Online = true, // TODO: check if node is online from farmerbot.log
-                                    Status = "", // TODO: check status from farmerbot.log
+                                    Status = Status.unknown, // TODO: check status from farmerbot.log
                                     UpdatedAt = DateTime.UtcNow
                                 },
                                 GridNode = gridNode,
@@ -148,6 +146,10 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
                 Data = new NodeStatusCollection()
                 {
                     BotName = bot.BotName,
+                    Farm = new Farm() 
+                    { 
+                        FarmId = bot.FarmId
+                    },
                     NodeStatusSets = nodeStatusSets,
                     LastUpdate = DateTime.UtcNow,
                     NoStatus = noStatus

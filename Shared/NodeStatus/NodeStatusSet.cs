@@ -15,5 +15,22 @@ namespace FarmerbotWebUI.Shared.NodeStatus
         public bool NoStatus { get; set; } = false;
         public bool IsError { get; set; }
         public string ErrorMessage { get; set; } = string.Empty;
+
+        public bool GridNodeTargetStateEven()
+        {
+            return GridNode.Power.Target == GridNode.Power.State ? true : false;
+        }
+
+        public bool BotNodeNeverShutdownAndStatusEven()
+        {
+            if (BotNode.Status == Status.down && BotNode.NodeDefinition.NeverShutdown == true)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
     }
 }
