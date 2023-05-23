@@ -3,38 +3,38 @@
 @inject IFileService FileService
 @implements IDisposable
 
-<RadzenCard Style="width: 310px; height: 310px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0">
+<RadzenCard Style="width: 310px; height: 310px; background-color: rgb(70, 68, 77); justify-content: center; align-items: center; " class="rz-border-radius-0 rz-shadow-8">
     <RadzenText Style="font-weight:700; margin-bottom: 8px">@botStatus.Name status</RadzenText>
-    <RadzenStack Orientation="Orientation.Horizontal" Gap="2.5rem">
-        @if (botStatus != null && !botStatus.NoStatus)
-        {
-            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Start" Gap="5px">
-                <RadzenText Style="width: 90px; font-weight:300; " >Updated at</RadzenText>
-                @foreach (var container in botStatus.Containers)
-                {
-                    <RadzenText Style="width: 90px; font-weight:300; ">@container.Name</RadzenText>
-                }
-                @if (botStatus.ConfigOk)
-                {
-                    <RadzenText Style="margin-top:10px; width: 90px; font-weight:300; ">FarmId</RadzenText>
-                    <RadzenText Style="width: 90px; font-weight:300; ">PublicIps</RadzenText>
-                    <RadzenText Style="width: 90px; font-weight:300; ">PeriodicWakeup</RadzenText>
-                    <RadzenText Style="width: 90px; font-weight:300; ">WakeUpThreshold</RadzenText>
-                }
-            </RadzenStack>
-            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Start" Gap="5px">
+    <RadzenStack Orientation="Orientation.Vertical" Gap="5px">
+        @if (botStatus != null && !botStatus.NoStatus)     {
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="50px">
+                <RadzenText Style="width: 90px; font-weight:300; ">Updated at</RadzenText>  
                 <RadzenText Style="width: 140px;">@botStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</RadzenText>
-                @foreach (var container in botStatus.Containers)
-                {
-                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(container.Running)" Text="@(container.Name)" />
-                }
-                @if (botStatus.ConfigOk)
-                {
-                    <RadzenText Style="margin-top:10px; width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.Id</RadzenText>
-                    <RadzenText Style="width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.PublicIps</RadzenText>
-                    <RadzenText Style="width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.PeriodicWakeup.ToString("hh:mm tt")</RadzenText>
-                    <RadzenText Style="width: 90px; font-weight:100; ">@(botStatus.BotDefinitionInfos.WakeUpThreshold)%</RadzenText>
-                }
+            </RadzenStack>
+            @foreach (var container in botStatus.Containers)
+            {
+                <RadzenBadge Style="width: 100%" Shade="Shade.Darker" BadgeStyle="@GetBadgeStyle(container.Running)" Text="@(container.Name)" />
+            }
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="50px">
+                <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Start" Gap="5px">
+                
+                    @if (botStatus.ConfigOk)
+                    {
+                        <RadzenText Style="margin-top:10px; width: 90px; font-weight:300; ">FarmId</RadzenText>
+                        <RadzenText Style="width: 90px; font-weight:300; ">PublicIps</RadzenText>
+                        <RadzenText Style="width: 90px; font-weight:300; ">PeriodicWakeup</RadzenText>
+                        <RadzenText Style="width: 90px; font-weight:300; ">WakeUpThreshold</RadzenText>
+                    }
+                </RadzenStack>
+                <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Start" Gap="5px">
+                    @if (botStatus.ConfigOk)
+                    {
+                        <RadzenText Style="margin-top:10px; width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.Id</RadzenText>
+                        <RadzenText Style="width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.PublicIps</RadzenText>
+                        <RadzenText Style="width: 90px; font-weight:100; ">@botStatus.BotDefinitionInfos.PeriodicWakeup.ToString("hh:mm tt")</RadzenText>
+                        <RadzenText Style="width: 90px; font-weight:100; ">@(botStatus.BotDefinitionInfos.WakeUpThreshold)%</RadzenText>
+                    }
+                </RadzenStack>
             </RadzenStack>
         }
         else

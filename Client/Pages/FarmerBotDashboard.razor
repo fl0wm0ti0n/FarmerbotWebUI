@@ -12,7 +12,7 @@
 @inject ContextMenuService ContextMenuService
 @inject NotificationService NotificationService
 
-<RadzenSplitter Orientation="Orientation.Horizontal" Collapse=@OnCollapse Expand=@OnExpand style="height: 100%;">
+<RadzenSplitter Orientation="Orientation.Horizontal" Collapse=@OnCollapse Expand=@OnExpand style="height: 500">
     <RadzenSplitterPane Size="40%" Min="10%" Max="70%">
         <RadzenSplitter Orientation="Orientation.Vertical" Collapse=@OnCollapse Expand=@OnExpand>
             @*### top left - On/off and farmerbot status section*@
@@ -47,13 +47,8 @@
     <RadzenSplitterPane>
         <RadzenSplitter Collapse=@OnCollapseDisabled Expand=@OnExpand Resize=@OnResizeDisabled>
             @*### full right - Node list and stati*@
-            <RadzenSplitterPane style="display: flex; justify-content: center; align-items: center; overflow: auto;">
-                <RadzenStack Style="margin-left: 20px; margin-top: 20px;" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
-                    @foreach (var nodeStatusCollection in NodeStatusService.ActualNodeStatusCollectionList)
-                    {
-                        <NodesStatus nodeStatus=@nodeStatusCollection />
-                    }
-                </RadzenStack>
+            <RadzenSplitterPane style="background-color: rgb(137, 174, 192); display: flex; justify-content: center; align-items: center; overflow: auto;">
+                <NodesStatus nodeStatusList=@NodeStatusService.ActualNodeStatusCollectionList />
             </RadzenSplitterPane>
         </RadzenSplitter>
     </RadzenSplitterPane>

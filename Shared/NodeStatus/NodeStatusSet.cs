@@ -23,14 +23,13 @@ namespace FarmerbotWebUI.Shared.NodeStatus
 
         public bool BotNodeNeverShutdownAndStatusEven()
         {
-            if (BotNode.Status == Status.down && BotNode.NodeDefinition.NeverShutdown == true)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            //if (BotNode.Status == Status.down && BotNode.NodeDefinition.NeverShutdown == true)
+            return BotNode.Status.ToString() == GetStateText((bool)BotNode?.NodeDefinition?.NeverShutdown);
+        }
+
+        private string GetStateText(bool status)
+        {
+            return status ? "up" : "down";
         }
     }
 }

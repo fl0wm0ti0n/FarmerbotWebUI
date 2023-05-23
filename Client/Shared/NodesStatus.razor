@@ -1,72 +1,110 @@
-﻿@page "/nodestatus/{nodeStatus}"
+﻿@page "/nodestatus/{nodeStatusList}"
 @inject TooltipService TooltipService
 
-@if (nodeStatus != null && !nodeStatus.NoStatus)
+@if (nodeStatusList != null && nodeStatusList.Count > 0)
 {
+    <RadzenTabs Style="width: 100%; height: 100%" class="rz-border-radius-0" TabPosition="TabPosition.Top" RenderMode="TabRenderMode.Client">
+        <Tabs>
+            <RadzenTabsItem Text="Tiles" class="rz-border-radius-0">
+                @foreach (var nodeStatus in nodeStatusList)
+                {
+                    <RadzenStack Style="" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
+                        @* Panel *@
+                        <RadzenPanel AllowCollapse="true" Class="rz-my-10 rz-mx-auto;" Style="width: 100%">
+                            <HeaderTemplate>
+                                <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
+                                    <RadzenIcon Icon="dns" class="rz-mr-1" /><b>Bot: @nodeStatus.BotName (FarmId: @nodeStatus.Farm.FarmId (TwinId: @nodeStatus.Farm.TwinId))</b>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.H6" Class="rz-mb-0">@($"Updated at {nodeStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}")</RadzenText>
+                            </HeaderTemplate>
+                            <ChildContent>
+                                <RadzenCard class="rz-mt-4">
+                                    <RadzenDataList PageSize="12" WrapItems="true" AllowPaging="true" Data="@nodeStatus.NodeStatusSets" TItem="NodeStatusSet">
+                                        <Template Context="node">
+                                            @* Node Element (Card) *@
+                                            <RadzenCard Style="width: 220px; height: 220px; max-width: 220; max-height: 220; justify-content: center; align-items: center;" class="rz-border-radius-0 rz-p-2" MouseEnter="@(args => ShowTooltipWithHtml(node, args))">
+                                                <RadzenRow>
+                                                    <RadzenColumn Size="2" class="rz-text-truncate">
+                                                        <RadzenBadge BadgeStyle="BadgeStyle.Light" Text=@($"{node.GridNode.NodeId}") class="me-1" />
+                                                    </RadzenColumn>
+                                                    <RadzenColumn Size="8" class="rz-text-truncate">
+                                                        <RadzenText TextStyle="TextStyle.Body1" Class="rz-mb-0">Uptime @(node.GridNode.GetUptime().ToString())</RadzenText>
+                                                    </RadzenColumn>
+                                                    <RadzenColumn Size="2" class="rz-text-align-end">
+                                                        <RadzenBadge BadgeStyle="@GetBadgeStyle(!node.IsError)" Text=@GetSuccessText(!node.IsError) />
+                                                    </RadzenColumn>
+                                                </RadzenRow>
+                                                    <hr style="border: none; background-color:black; height: 1px; width: 100%" class="rz-my-2" />
+@*                                                <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" Gap="5px">
+                                                    @if (!node.NotConfigured)
+                                                    {
+                                                        <RadzenText TextStyle="TextStyle.Body1" Class="rz-my-0">@($"Updated at: {node.BotNode.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}")</RadzenText>
+                                                        <hr style="border: none; background-color: black; height: 1px; width: 100%" class="rz-my-2" />
+                                                        <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" Gap="5px">
+                                                            <RadzenText TextStyle="TextStyle.Body1" Class="rz-my-0">@($"Grid Target/State")</RadzenText>
+                                                                <RadzenBadge Style="width: 100%" BadgeStyle="@GetBadgeStyle(node.GridNodeTargetStateEven())" Text=@($"{node.GridNode.Power.Target}/{node.GridNode.Power.State}") />
+                                                            <RadzenText TextStyle="TextStyle.Body1" Class="rz-my-0">@($"Bot Target/State")</RadzenText>
+                                                            <RadzenBadge Style="width: 100%" BadgeStyle="@GetBadgeStyle(node.BotNodeNeverShutdownAndStatusEven())" Text=@($"{GetStateText((bool)node?.BotNode?.NodeDefinition?.NeverShutdown)}/{node.BotNode.Status.ToString()}") />
+                                                        </RadzenStack>
+                                                    }
+                                                    else
+                                                    {
+                                                        <RadzenStack Gap="0">
+                                                            <RadzenBadge BadgeStyle="@GetBadgeStyle(!node.NotConfigured)" Text=@($"Node {GetNotConfiguredText(node.NotConfigured)}") />
+                                                        </RadzenStack>
+                                                    }
+                                                </RadzenStack>*@
+                                                    <RadzenColumn Size="12" class="rz-text-align-center">
+                                                    @if (!node.NotConfigured)
+                                                    {
+                                                        <RadzenRow class="rz-text-align-center rz-justify-content-center">
+                                                            <RadzenText TextStyle="TextStyle.Body1" Class="rz-my-0">@($"Updated at: {node.BotNode.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}")</RadzenText>
+                                                        </RadzenRow>
+                                                        <RadzenRow class="rz-text-align-center rz-justify-content-center">
+                                                            <hr style="border: none; background-color: black; height: 1px; width: 100%" class="rz-my-2" />
+                                                        </RadzenRow>
+                                                        <RadzenRow class="rz-text-align-center rz-justify-content-center">
+                                                            <RadzenText TextStyle="TextStyle.Body1" Class="rz-my-0">@($"Grid Target/State")</RadzenText>
+                                                        </RadzenRow>
+                                                        <RadzenRow class="rz-text-align-center rz-justify-content-center">
+                                                            <RadzenBadge Style="width: 100%" BadgeStyle="@GetBadgeStyle(node.GridNodeTargetStateEven())" Text=@($"{node.GridNode.Power.Target}/{node.GridNode.Power.State}") />
+                                                        </RadzenRow>
+                                                        <RadzenRow class="rz-text-align-center rz-justify-content-center">
+                                                            <RadzenText TextStyle="TextStyle.Body1" Class="rz-my-0">@($"Bot Target/State")</RadzenText>
+                                                        </RadzenRow>
+                                                        <RadzenRow class="rz-text-align-center rz-justify-content-center">
+                                                            <RadzenBadge Style="width: 100%" BadgeStyle="@GetBadgeStyle(node.BotNodeNeverShutdownAndStatusEven())" Text=@($"{GetStateText((bool)node?.BotNode?.NodeDefinition?.NeverShutdown)}/{node.BotNode.Status.ToString()}") />
+                                                        </RadzenRow>
+                                                    }
+                                                    else
+                                                    {
+                                                        <RadzenRow class="rz-text-align-center">
+                                                            <RadzenBadge BadgeStyle="@GetBadgeStyle(!node.NotConfigured)" Text=@($"Node {GetNotConfiguredText(node.NotConfigured)}") />
+                                                        </RadzenRow>
+                                                    }
+                                                </RadzenColumn>
+                                            </RadzenCard>
+                                        </Template>
+                                    </RadzenDataList>
+                                </RadzenCard>
+                            </ChildContent>
+                            <SummaryTemplate>
+                                <RadzenCard class="rz-mt-4">
+                                    <b>@nodeStatus.NodeStatusSets.Count() Nodes</b>
+                                </RadzenCard>
+                            </SummaryTemplate>
+                        </RadzenPanel>
+                    </RadzenStack>
+                }
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Grid">
+                @foreach (var nodeStatus in nodeStatusList)
+                {
 
-    @* Panel *@
-    <RadzenPanel AllowCollapse="true" Class="rz-my-10 rz-mx-auto;" Style="width: 100%">
-        <HeaderTemplate>
-            <RadzenText TextStyle="TextStyle.H6" Class="rz-display-flex rz-align-items-center rz-m-0">
-                <RadzenIcon Icon="dns" class="rz-mr-1" /><b>Bot: @nodeStatus.BotName (FarmId: @nodeStatus.Farm.FarmId (TwinId: @nodeStatus.Farm.TwinId))</b>
-            </RadzenText>
-            <RadzenText TextStyle="TextStyle.H6" Class="rz-mb-0">@($"Updated at {nodeStatus.LastUpdate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}")</RadzenText>
-        </HeaderTemplate>
-        <ChildContent>
-            <RadzenCard class="rz-mt-4">
-                    <RadzenDataList PageSize="12" WrapItems="true" AllowPaging="true" Data="@nodeStatus.NodeStatusSets" TItem="NodeStatusSet">
-                    <Template Context="node">
-                        @* Node Element (Card) *@
-                        <RadzenCard Style="width: 180px; height: 200px" MouseEnter="@(args => ShowTooltipWithHtml(node, args))">
-                            <RadzenRow>
-                                <RadzenColumn Size="8" class="rz-text-truncate">
-                                    <RadzenBadge BadgeStyle="BadgeStyle.Light" Text=@($"{node.GridNode.NodeId}") class="me-1" />
-                                        <b style="font-size: 1rem">Uptime @(node.GridNode.GetUptime().ToString())</b>
-                                </RadzenColumn>
-                                <RadzenColumn Size="4" class="rz-text-align-end">
-                                    <RadzenBadge BadgeStyle="@GetBadgeStyle(!node.IsError)" Text=@GetSuccessText(!node.IsError) />
-                                </RadzenColumn>
-                            </RadzenRow>
-                            <hr style="border: none; background-color:black; height: 1px; margin: 1px; width: 100%" />
-                            <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" Gap="1rem">
-@*                                <RadzenStack Gap="0">
-                                    <RadzenText TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"Api Updated at: {node.GridNode.GetUpdatedAt().ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}")</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"CreatetAt at:   {node.GridNode.GetCreatedAt().ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}")</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"Createt at:     {node.GridNode.GetCreated().ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}")</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"TwinId:         {node.GridNode.TwinId}")</RadzenText>
-                                </RadzenStack>
-                                <hr style="border: none; background-color: black; height: 1px; margin: 1px; width: 100%" />*@
-                                @if (!node.NotConfigured)
-                                {
-                                    <RadzenStack Gap="0" >
-                                        <RadzenText TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"Updated at: {node.BotNode.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}")</RadzenText>
-                                    </RadzenStack>
-                                }
-                                else
-                                {
-                                    <RadzenStack Gap="0">
-                                        <RadzenBadge BadgeStyle="@GetBadgeStyle(!node.NotConfigured)" Text=@($"Node {GetNotConfiguredText(node.NotConfigured)}") />
-                                    </RadzenStack>
-                                }
-                                <hr style="border: none; background-color: black; height: 1px; margin: 1px; width: 100%" />
-                                <RadzenStack Gap="2">
-                                    <RadzenText TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"Grid Target/State")</RadzenText>
-                                    <RadzenBadge BadgeStyle="@GetBadgeStyle(node.GridNodeTargetStateEven())" Text=@($"{node.GridNode.Power.Target}/{node.GridNode.Power.Target}") />
-                                    <RadzenText TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"Bot Target/State")</RadzenText>
-                                    <RadzenBadge BadgeStyle="@GetBadgeStyle(node.BotNodeNeverShutdownAndStatusEven())" Text=@($"{GetStateText((bool)node?.BotNode?.NodeDefinition?.NeverShutdown)}/{node.BotNode.Status.ToString()}") />
-                                </RadzenStack>
-                            </RadzenStack>
-                        </RadzenCard>
-                    </Template>
-                </RadzenDataList>
-            </RadzenCard>
-        </ChildContent>
-            <SummaryTemplate>
-                <RadzenCard class="rz-mt-4">
-                <b>@nodeStatus.NodeStatusSets.Count() Nodes</b>
-                </RadzenCard>
-            </SummaryTemplate>
-    </RadzenPanel>
+                }
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
 }
 else
 {
@@ -77,10 +115,10 @@ else
 
 @code {
     [Parameter]
-    public NodeStatusCollection nodeStatus { get; set; }
+    public List<NodeStatusCollection> nodeStatusList { get; set; }
     private TooltipOptions _options { get; set; } = new TooltipOptions()
     { 
-        Delay = 1000,
+        Delay = 3000,
         Duration = 10000,
         Style = "background: rgb(178, 222, 228); color: black; font-weight: 100; font-size:small; word-wrap: break-word;",
         Position = TooltipPosition.Bottom
@@ -99,7 +137,7 @@ else
                 <RadzenText Style="color: rgb(44, 62, 78)" TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"GridVersion:          {node.GridNode.GridVersion}")</RadzenText>
                 <RadzenText Style="color: rgb(44, 62, 78)" TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"Id:                   {node.GridNode.Id}")</RadzenText>
                 <RadzenText Style="color: rgb(44, 62, 78)" TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"Target:               {node.GridNode.Power.Target}")</RadzenText>
-                <RadzenText Style="color: rgb(44, 62, 78)" TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"Stawte:               {node.GridNode.Power.State}")</RadzenText>
+                <RadzenText Style="color: rgb(44, 62, 78)" TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"State:               {node.GridNode.Power.State}")</RadzenText>
                 <RadzenText Style="color: rgb(44, 62, 78)" TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"Secure:               {node.GridNode.Secure}")</RadzenText>
                 <RadzenText Style="color: rgb(44, 62, 78)" TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"SerialNumber:         {node.GridNode.SerialNumber}")</RadzenText>
                 <RadzenText Style="color: rgb(44, 62, 78)" TextStyle="TextStyle.Body1" Class="rz-mb-0">@($"ResourcesTotal:")</RadzenText>
