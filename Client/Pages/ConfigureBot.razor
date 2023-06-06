@@ -1,0 +1,60 @@
+﻿@page "/configureBot"
+
+<RadzenSplitter Orientation="Orientation.Horizontal" Collapse=@OnCollapse Expand=@OnExpand >
+    <RadzenSplitterPane Size="50%" Min="10%" Max="70%">
+        <RadzenSplitter Orientation="Orientation.Vertical" Collapse=@OnCollapse Expand=@OnExpand>
+            <RadzenAccordion Multiple="true">
+                <Items>
+                    @foreach (var item in collection)
+                    {
+                        <RadzenAccordionItem Text="Orders" Icon="">
+                            Details for Orders
+                        </RadzenAccordionItem>
+                    }
+                </Items>
+            </RadzenAccordion>
+        </RadzenSplitter>
+    </RadzenSplitterPane>
+    <RadzenSplitterPane>
+        <RadzenSplitter Collapse=@OnCollapseDisabled Expand=@OnExpand Resize=@OnResizeDisabled>
+
+        </RadzenSplitter>
+    </RadzenSplitterPane>
+</RadzenSplitter>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        
+    }
+
+    void OnCollapse(RadzenSplitterEventArgs args)
+    {
+
+    }
+
+    void OnExpand(RadzenSplitterEventArgs args)
+    {
+
+    }
+
+    void OnResize(RadzenSplitterResizeEventArgs args)
+    {
+
+    }
+
+    void OnCollapseDisabled(RadzenSplitterEventArgs args)
+    {
+        args.Cancel = true;
+    }
+
+    void OnResizeDisabled(RadzenSplitterResizeEventArgs args)
+    {
+        args.Cancel = true;
+    }
+
+    public void Dispose()
+    {
+
+    }
+}

@@ -4,6 +4,7 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
 {
     public interface IFileService
     {
+        void StartStatusInterval();
         Task<ServiceResponse<string>> GetLocalLogAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
         Task<ServiceResponse<string>> GetRawMarkdownConfigAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
         Task<ServiceResponse<FarmerBotConfig>> GetMarkdownConfigAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
@@ -17,6 +18,7 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
         Task<ServiceResponse<EnvFile>> GetEnvFileAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
         Task<ServiceResponse<string>> SetRawEnvFileAsync(string env, string botName, EventSourceActionId id, CancellationToken cancellationToken);
         Task<ServiceResponse<string>> SetEnvFileAsync(EnvFile env, string botName, EventSourceActionId id, CancellationToken cancellationToken);
+        Task<ServiceResponse<List<FarmerBot>>> GetFarmerBotListAsync(EventSourceActionId id);
         Task<ServiceResponse<FarmerBot>> GetFarmerBotAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
         Task<ServiceResponse<string>> SetFarmerBotAsync(FarmerBot bot, EventSourceActionId id, CancellationToken cancellationToken);
     }

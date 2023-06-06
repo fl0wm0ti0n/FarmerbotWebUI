@@ -3,6 +3,7 @@
 @inject IDockerService DockerService
 @inject INodeStatusService NodeStatusService
 @inject IAppSettings AppSettings
+@inject IFileService FileService
 
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
@@ -73,6 +74,16 @@
             EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetNodeStatus, Source = EventSource.ClientStartup, Typ = EventTyp.ClientJob };
             NodeStatusService.GetNodeStatusListAsync(eventSourceActionId);
             NodeStatusService.StartStatusInterval();
+        }
+    }
+
+    private void InitializeFilesService()
+    {
+        if (AppSettings.FarmerBotSettings.Bots.Count > 0)
+        {
+            EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetFarmerBot, Source = EventSource.ClientStartup, Typ = EventTyp.ClientJob };
+            FileService.GetFarmerBotListAsync(eventSourceActionId);
+            FileService.StartStatusInterval();
         }
     }
 

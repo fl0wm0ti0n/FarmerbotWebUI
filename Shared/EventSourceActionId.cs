@@ -63,6 +63,7 @@ public enum EventSource
         SetFiles,
         GetSettings,
         SetSettings,
-
+        GetFarmerBot,
+        SetFarmerBot
     }
 }

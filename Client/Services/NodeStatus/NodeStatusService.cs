@@ -44,7 +44,7 @@ namespace FarmerbotWebUI.Client.Services.NodeStatus
         private async void OnTimerElapsed(object sender, ElapsedEventArgs e)
         {
             ServiceResponse<List<NodeStatusCollection>> response = new ServiceResponse<List<NodeStatusCollection>>();
-            EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetSettings, Source = EventSource.SettingsService, Typ = EventTyp.ClientJob };
+            EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetNodeStatus, Source = EventSource.NodeStatusService, Typ = EventTyp.ClientJob };
             response = await GetNodeStatusListAsync(eventSourceActionId);
         }
 

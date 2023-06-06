@@ -114,6 +114,13 @@ namespace FarmerbotWebUI.Server.Controllers
         }
         #endregion Env
         #region FarmerBot
+        [HttpGet("bot/get")]
+        public async Task<ActionResult<ServiceResponse<List<FarmerBot>>>> GetFarmerBotListAsync(CancellationToken cancellationToken)
+        {
+            var output = await _filesystemService.GetFarmerBotListAsync(cancellationToken);
+            return Ok(output);
+        }
+
         [HttpGet("bot/get/{botName}")]
         public async Task<ActionResult<ServiceResponse<FarmerBot>>> GetFarmerBotAsync(string botName, CancellationToken cancellationToken)
         {
