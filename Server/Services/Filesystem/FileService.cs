@@ -1,5 +1,7 @@
 ﻿using FarmerbotWebUI.Shared.BotConfig;
+using FarmerbotWebUI.Shared.NodeStatus;
 using FarmerBotWebUI.Shared;
+using System.Text;
 
 namespace FarmerbotWebUI.Server.Services.Filesystem
 {
@@ -307,6 +309,37 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
         #endregion Env
 
         #region FarmerBot
+
+        public async Task<ServiceResponse<List<FarmerBot>>> GetFarmerBotListAsync(CancellationToken cancellationToken)
+        {
+            bool success = true;
+            StringBuilder sb = new StringBuilder();
+
+            List<FarmerBot> farmerBotList = new List<FarmerBot>();
+            foreach (var bot in _appSettings.FarmerBotSettings.Bots)
+            {
+                var farmerBot = await GetFarmerBotAsync(bot.BotName, cancellationToken);
+                if (farmerBot.Success)
+                {
+                    farmerBotList.Add(farmerBot.Data);
+                }
+                else
+                {
+                    sb.AppendLine(farmerBot.Message);
+                    success = false;
+                }
+            }
+
+            ServiceResponse<List<FarmerBot>> response = new ServiceResponse<List<FarmerBot>>
+            {
+                Data = farmerBotList,
+                Message = sb.ToString(),
+                Success = success,
+            };
+
+            return response;
+        }
+
         public async Task<ServiceResponse<FarmerBot>> GetFarmerBotAsync(string botName, CancellationToken cancellationToken)
         {
             string error = "";
@@ -326,6 +359,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
                         farmerBot.DockerCompose = await ParseFromComposeFile(composePath, cancellationToken);
                         farmerBot.EnvFile = await ParseFromEnvFile(EnvPath, cancellationToken);
                         farmerBot.FarmerBotConfig = await ParseFromMarkdownFile(ConfigPath, cancellationToken);
+                        farmerBot.Name = botName;
                     }
                     catch (Exception ex)
                     {

@@ -18,6 +18,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
         Task<ServiceResponse<EnvFile>> GetEnvFileAsync(string botName, CancellationToken cancellationToken);
         Task<ServiceResponse<string>> SetRawEnvFileAsync(string env, string botName, CancellationToken cancellationToken);
         Task<ServiceResponse<string>> SetEnvFileAsync(EnvFile env, string botName, CancellationToken cancellationToken);
+        Task<ServiceResponse<List<FarmerBot>>> GetFarmerBotListAsync(CancellationToken cancellationToken);
         Task<ServiceResponse<FarmerBot>> GetFarmerBotAsync(string botName, CancellationToken cancellationToken);
         Task<ServiceResponse<string>> SetFarmerBotAsync(FarmerBot bot, CancellationToken cancellationToken);
     }

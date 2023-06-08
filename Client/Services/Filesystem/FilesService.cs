@@ -78,7 +78,7 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
         public async Task<ServiceResponse<string>> SetRawMarkdownConfigAsync(string config, string botName, EventSourceActionId id, CancellationToken cancellationToken)
         {
             var content = new StringContent(config, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"api/markdown/set/{botName}", content);
+            var response = await _httpClient.PostAsync($"api/filesystem/markdown/set/{botName}", content);
 
             var responseContent = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<ServiceResponse<string>>(responseContent);
@@ -106,7 +106,7 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
         public async Task<ServiceResponse<string>> SetRawComposeFileAsync(string compose, string botName, EventSourceActionId id, CancellationToken cancellationToken)
         {
             var content = new StringContent(compose, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"api/compose/set/{botName}", content);
+            var response = await _httpClient.PostAsync($"api/filesystem/compose/set/{botName}", content);
 
             var responseContent = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<ServiceResponse<string>>(responseContent);
@@ -152,7 +152,7 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
             var GuiAndProgress = id.Typ == EventTyp.UserAction ? true : false;
             id = _eventConsole.AddMessage(id, title, message, GuiAndProgress, false, GuiAndProgress, LogLevel.Information, EventResult.Valueless);
 
-            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<List<FarmerBot>>>($"api/get");
+            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<List<FarmerBot>>>($"api/filesystem/bot/get");
 
             // Response Error handling
             foreach (var item in response.Data)
@@ -182,7 +182,7 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
             var GuiAndProgress = id.Typ == EventTyp.UserAction ? true : false;
             id = _eventConsole.AddMessage(id, title, message, GuiAndProgress, false, GuiAndProgress, LogLevel.Information, EventResult.Valueless);
 
-            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBot>>($"api/get/{botName}");
+            var response = await _httpClient.GetFromJsonAsync<ServiceResponse<FarmerBot>>($"api/filesystem/bot/get/{botName}");
             if (response.Success)
             {
                 ActualFarmerBotList.Add(response.Data);
@@ -199,7 +199,7 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
         public async Task<ServiceResponse<string>> SetFarmerBotAsync(FarmerBot bot, EventSourceActionId id, CancellationToken cancellationToken)
         {
             var content = JsonContent.Create(bot);
-            var response = await _httpClient.PostAsync($"api/bot/set", content, cancellationToken);
+            var response = await _httpClient.PostAsync($"api/filesystem/bot/set", content, cancellationToken);
 
             var responseContent = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<ServiceResponse<string>>(responseContent);

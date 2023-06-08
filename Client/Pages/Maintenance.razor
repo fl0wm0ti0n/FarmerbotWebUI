@@ -1,39 +1,22 @@
-﻿@page "/configureBot"
-@inject IFileService FileService
+﻿@page "/maintenance"
 
 <RadzenSplitter Orientation="Orientation.Horizontal" Collapse=@OnCollapse Expand=@OnExpand >
     <RadzenSplitterPane Size="50%" Min="10%" Max="70%">
         <RadzenSplitter Orientation="Orientation.Vertical" Collapse=@OnCollapse Expand=@OnExpand>
-            <RadzenAccordion Multiple="true">
-                <Items>
-                    @foreach (var farmerBot in farmerBotList)
-                    {
-                        <RadzenAccordionItem Text="@(farmerBot.Name)" Icon="">
-                            @(farmerBot.FarmerBotConfig.FarmDefinition.Id)
-                        </RadzenAccordionItem>
-                    }
-                </Items>
-            </RadzenAccordion>
+            Live Logging output coming Soon
         </RadzenSplitter>
     </RadzenSplitterPane>
     <RadzenSplitterPane>
         <RadzenSplitter Collapse=@OnCollapseDisabled Expand=@OnExpand Resize=@OnResizeDisabled>
-
+            Logfile output coming Soon
         </RadzenSplitter>
     </RadzenSplitterPane>
 </RadzenSplitter>
 
 @code {
-    List<FarmerBot> farmerBotList = new List<FarmerBot>();
-
     protected override async Task OnInitializedAsync()
     {
-        EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetFarmerBot, Source = EventSource.ClientStartup, Typ = EventTyp.ClientJob };
-        await FileService.GetFarmerBotListAsync(eventSourceActionId).ContinueWith((task) =>
-        {
-            farmerBotList = FileService.ActualFarmerBotList;
-            StateHasChanged();
-        });
+        
     }
 
     void OnCollapse(RadzenSplitterEventArgs args)

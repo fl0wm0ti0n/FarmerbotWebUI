@@ -4,6 +4,7 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
 {
     public interface IFileService
     {
+        List<FarmerBot> ActualFarmerBotList { get; }
         void StartStatusInterval();
         Task<ServiceResponse<string>> GetLocalLogAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);
         Task<ServiceResponse<string>> GetRawMarkdownConfigAsync(string botName, EventSourceActionId id, CancellationToken cancellationToken);

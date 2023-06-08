@@ -92,6 +92,7 @@
         //AppSettings.SaveSettings(newAppSettings);
         InitializeDockerService();
         InitializeNodeStatusService();
+        InitializeFilesService();
         AppSettings.OnAppSettingsChanged -= StartServices;
     }
 
