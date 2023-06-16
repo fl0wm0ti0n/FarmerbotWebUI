@@ -115,7 +115,6 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
             {
                 string text = await File.ReadAllTextAsync(path, ct);
                 dockerCompose.DeserializeYaml(text);
-                dockerCompose.IsError = false;
                 return dockerCompose;
             }
             catch (Exception ex)
@@ -319,11 +318,9 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
             foreach (var bot in _appSettings.FarmerBotSettings.Bots)
             {
                 var farmerBot = await GetFarmerBotAsync(bot.BotName, cancellationToken);
-                if (farmerBot.Success)
-                {
-                    farmerBotList.Add(farmerBot.Data);
-                }
-                else
+
+                farmerBotList.Add(farmerBot.Data);
+                if (!farmerBot.Success)
                 {
                     sb.AppendLine(farmerBot.Message);
                     success = false;
@@ -351,15 +348,23 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
                 if (botConfig != null)
                 {
                     var composePath = $"{botConfig.WorkingDirectory}{Path.DirectorySeparatorChar}{botConfig.ComposeFile}";
-                    var EnvPath = $"{botConfig.WorkingDirectory}{Path.DirectorySeparatorChar}{botConfig.ThreefoldNetworkFile}";
+                    var EnvPath = $"{botConfig.WorkingDirectory}{Path.DirectorySeparatorChar}{botConfig.EnvFile}";
                     var ConfigPath = $"{botConfig.WorkingDirectory}{Path.DirectorySeparatorChar}{botConfig.FarmerBotConfigFile}";
 
                     try
                     {
                         farmerBot.DockerCompose = await ParseFromComposeFile(composePath, cancellationToken);
-                        farmerBot.EnvFile = await ParseFromEnvFile(EnvPath, cancellationToken);
+                        farmerBot.Env = await ParseFromEnvFile(EnvPath, cancellationToken);
                         farmerBot.FarmerBotConfig = await ParseFromMarkdownFile(ConfigPath, cancellationToken);
                         farmerBot.Name = botName;
+                        farmerBot.Id = botConfig.BotId;
+                        farmerBot.FarmerBotConfigFile = botConfig.FarmerBotConfigFile;
+                        farmerBot.FarmerBotLogFile = botConfig.FarmerBotLogFile;
+                        farmerBot.EnvFile = botConfig.EnvFile;
+                        farmerBot.ComposeFile = botConfig.ComposeFile;
+                        farmerBot.WorkingDirectory = botConfig.WorkingDirectory;
+                        farmerBot.Network = botConfig.Network.ToString();
+                        farmerBot.NetworkRelay = botConfig.NetworkRelay;
                     }
                     catch (Exception ex)
                     {
@@ -413,7 +418,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
                 if (botConfig != null)
                 {
                     var composePath = $"{botConfig.WorkingDirectory}{Path.DirectorySeparatorChar}{botConfig.ComposeFile}";
-                    var EnvPath = $"{botConfig.WorkingDirectory}{Path.DirectorySeparatorChar}{botConfig.ThreefoldNetworkFile}";
+                    var EnvPath = $"{botConfig.WorkingDirectory}{Path.DirectorySeparatorChar}{botConfig.EnvFile}";
                     var ConfigPath = $"{botConfig.WorkingDirectory}{Path.DirectorySeparatorChar}{botConfig.FarmerBotConfigFile}";
 
                     try
@@ -421,7 +426,7 @@ namespace FarmerbotWebUI.Server.Services.Filesystem
                         var success = await WriteToComposeFile(composePath, bot.DockerCompose, cancellationToken);
                         if (success)
                         {
-                            success = await WriteToEnvFile(EnvPath, bot.EnvFile, cancellationToken);
+                            success = await WriteToEnvFile(EnvPath, bot.Env, cancellationToken);
                             if (success)
                             {
                                 success = await WriteToMarkdownFile(ConfigPath, bot.FarmerBotConfig, cancellationToken);

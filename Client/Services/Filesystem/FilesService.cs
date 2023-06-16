@@ -23,7 +23,8 @@ namespace FarmerbotWebUI.Client.Services.Filesystem
 
         public event Action StatusChanged = () => { };
 
-        public List<FarmerBot> ActualFarmerBotList { get; private set; } = new List<FarmerBot>();
+        public List<FarmerBot> ActualFarmerBotList { get; private set; } = new List<FarmerBot>();   
+        public FarmerBot NewFarmerBot { get; set; } = new FarmerBot();
 
         public FilesService(HttpClient httpClient, IEventConsoleService eventConsole, IAppSettings appSettings)
         {

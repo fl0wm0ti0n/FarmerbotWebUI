@@ -6,6 +6,7 @@ global using FarmerbotWebUI.Server.Services.NodeStatus;
 global using FarmerBotWebUI.Shared.NodeStatus;
 global using FarmerbotWebUI.Shared.BotConfig;
 global using FarmerbotWebUI.Shared;
+global using FarmerbotWebUI.Client.Views;
 using FarmerbotWebUI.Server;
 using FarmerBotWebUI.Shared;
 

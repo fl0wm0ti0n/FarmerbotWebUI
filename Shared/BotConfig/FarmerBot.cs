@@ -8,18 +8,27 @@ namespace FarmerbotWebUI.Shared.BotConfig
 {
     public class FarmerBot
     {
-        public string Name { get; set; }
-        public int Id { get; set; }
-        public FarmerBotConfig FarmerBotConfig { get; set; }
-        public DockerCompose DockerCompose { get; set; }
-        public EnvFile EnvFile { get; set; }
+        public string Name { get; set; } = "New FarmerBot";
+        public int Id { get; set; } = 0;
+        public FarmerBotConfig FarmerBotConfig { get; set; } = new FarmerBotConfig();
+        public DockerCompose DockerCompose { get; set; } = new DockerCompose();
+        public EnvFile Env { get; set; } = new EnvFile();        
+        public string WorkingDirectory { get; set; } = string.Empty;
+        public string ComposeFile { get; set; } = string.Empty;
+        public string EnvFile { get; set; } = string.Empty;
+        public string FarmerBotConfigFile { get; set; } = string.Empty;
+        public string FarmerBotLogFile { get; set; } = string.Empty;
+        public long FarmId { get; set; } = 0;
+        public string Network { get; set; } = string.Empty;
+        public string NetworkRelay { get; set; } = string.Empty;
+
         public bool IsError
         {
             get
             {
                 return (FarmerBotConfig?.IsError ?? false) ||
                        (DockerCompose?.IsError ?? false) ||
-                       (EnvFile?.IsError ?? false);
+                       (Env?.IsError ?? false);
             }
         }
 
@@ -39,9 +48,9 @@ namespace FarmerbotWebUI.Shared.BotConfig
                     errorMessageBuilder.AppendLine(DockerCompose.ErrorMessage);
                 }
 
-                if (EnvFile?.IsError ?? false)
+                if (Env?.IsError ?? false)
                 {
-                    errorMessageBuilder.AppendLine(EnvFile.ErrorMessage);
+                    errorMessageBuilder.AppendLine(Env.ErrorMessage);
                 }
 
                 return errorMessageBuilder.ToString();

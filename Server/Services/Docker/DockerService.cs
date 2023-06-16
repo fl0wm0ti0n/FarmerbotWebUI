@@ -234,25 +234,23 @@ namespace FarmerbotWebUI.Server.Services.Docker
             {
                 if (bot.Data.IsError)
                 {
-                    error = bot.Message;
-                    exitCode = 1;
-                    actualStatus.NoStatus = true;
+                    error = $"{error}\n{bot.Message}";
+                    //exitCode = 1;
+                    //actualStatus.NoStatus = true;
                 }
-                else
+
+                actualStatus.EnvOk = !bot.Data.Env.IsError;
+                actualStatus.EnvError = bot.Data.Env.ErrorMessage;
+                actualStatus.ConfigOk = !bot.Data.FarmerBotConfig.IsError;
+                actualStatus.ConfigError = bot.Data.FarmerBotConfig.ErrorMessage;
+                actualStatus.ComposeOk = !bot.Data.DockerCompose.IsError;
+                actualStatus.ComposeError = bot.Data.DockerCompose.ErrorMessage;
+                if (actualStatus.ConfigOk)
                 {
-                    actualStatus.EnvOk = !bot.Data.EnvFile.IsError;
-                    actualStatus.EnvError = bot.Data.EnvFile.ErrorMessage;
-                    actualStatus.ConfigOk = !bot.Data.FarmerBotConfig.IsError;
-                    actualStatus.ConfigError = bot.Data.FarmerBotConfig.ErrorMessage;
-                    actualStatus.ComposeOk = !bot.Data.DockerCompose.IsError;
-                    actualStatus.ComposeError = bot.Data.DockerCompose.ErrorMessage;
-                    if (actualStatus.ConfigOk)
-                    {
-                        actualStatus.BotDefinitionInfos.WakeUpThreshold = bot.Data.FarmerBotConfig.PowerDefinition.WakeUpThreshold;
-                        actualStatus.BotDefinitionInfos.PeriodicWakeup = bot.Data.FarmerBotConfig.PowerDefinition.PeriodicWakeup;
-                        actualStatus.BotDefinitionInfos.PublicIps = bot.Data.FarmerBotConfig.FarmDefinition.PublicIps;
-                        actualStatus.BotDefinitionInfos.Id = bot.Data.FarmerBotConfig.FarmDefinition.Id;
-                    }
+                    actualStatus.BotDefinitionInfos.WakeUpThreshold = bot.Data.FarmerBotConfig.PowerDefinition.WakeUpThreshold;
+                    actualStatus.BotDefinitionInfos.PeriodicWakeup = bot.Data.FarmerBotConfig.PowerDefinition.PeriodicWakeup;
+                    actualStatus.BotDefinitionInfos.PublicIps = bot.Data.FarmerBotConfig.FarmDefinition.PublicIps;
+                    actualStatus.BotDefinitionInfos.Id = bot.Data.FarmerBotConfig.FarmDefinition.Id;
                 }
             }
             else

@@ -39,7 +39,7 @@ namespace FarmerbotWebUI.Server.Services.Settings
                 .AddJsonFile(_configPath, optional: false, reloadOnChange: true)
                 .Build();
                 _appSettings.SaveSettings(Configuration.Get<AppSettings>());
-                _appSettings = Configuration.Get<AppSettings>();
+                //_appSettings = Configuration.Get<AppSettings>();
                 //AppSetting.SaveSettings(Configuration.Get<AppSettings>());
                 _appSettings.InvokeOnAppSettingsChanged();
             });

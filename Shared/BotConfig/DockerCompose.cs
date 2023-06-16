@@ -49,6 +49,9 @@ namespace FarmerbotWebUI.Shared.BotConfig
             try
             {
                 var result = serializer.Serialize(this);
+
+                var commandString = SerializeCommand();
+
                 return result;
             }
             catch (Exception ex)
@@ -86,6 +89,22 @@ namespace FarmerbotWebUI.Shared.BotConfig
 
         [YamlMember(Alias = "healthcheck")]
         public HealthCheck HealthCheck { get; set; }
+
+        public string SerializeCommand()
+        {
+            if (Command is string commandString)
+            {
+                return commandString;
+            }
+            else if (Command is List<string> commandList)
+            {
+                return string.Join(" ", commandList);
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
     }
 
     public class Dependency

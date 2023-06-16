@@ -162,7 +162,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             try
             {
                 var content = new StringContent(JObject.FromObject(requestBody).ToString(), Encoding.UTF8, "application/json");
-                var url = _appSettings.ThreefoldApiSettings.FirstOrDefault(g => g.Net == _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.FarmId == farmId).Network).GraphQl;
+                var url = _appSettings.ThreefoldApiSettings.FirstOrDefault(g => g.Net == _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.FarmId == farmId).Network.ToString()).GraphQl;
                 var response = await _client.PostAsync(url, content, cancellationToken);
 
                 if (response.IsSuccessStatusCode)
@@ -235,7 +235,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             try
             {
                 var content = new StringContent(JObject.FromObject(requestBody).ToString(), Encoding.UTF8, "application/json");
-                var url = _appSettings.ThreefoldApiSettings.FirstOrDefault(g => g.Net == _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.FarmId == farmId).Network).GraphQl;
+                var url = _appSettings.ThreefoldApiSettings.FirstOrDefault(g => g.Net == _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.FarmId == farmId).Network.ToString()).GraphQl;
                 var response = await _client.PostAsync(url, content);
 
                 if (response.IsSuccessStatusCode)

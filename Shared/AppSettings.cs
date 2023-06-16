@@ -50,6 +50,11 @@ namespace FarmerBotWebUI.Shared
         public void SaveSettings(AppSettings appSettings)
         {
             AllowedHosts = appSettings.AllowedHosts;
+            // in case workingdir is empty, set it to current dir
+            if (appSettings.GeneralSettings.WorkingDirectory == "")
+            {
+                appSettings.GeneralSettings.WorkingDirectory = System.IO.Directory.GetCurrentDirectory();
+            }
             GeneralSettings = appSettings.GeneralSettings;
             DockerSettings = appSettings.DockerSettings;
             FarmerBotSettings = appSettings.FarmerBotSettings;
@@ -94,6 +99,9 @@ namespace FarmerBotWebUI.Shared
         [JsonProperty("BotName")]
         public string BotName { get; set; }
 
+        [JsonProperty("BotId")]
+        public int BotId { get; set; }
+
         [JsonProperty("WorkingDirectory")]
         public string WorkingDirectory { get; set; }
 
@@ -101,7 +109,7 @@ namespace FarmerBotWebUI.Shared
         public string ComposeFile { get; set; }
 
         [JsonProperty("ThreefoldNetworkFile")]
-        public string ThreefoldNetworkFile { get; set; }
+        public string EnvFile { get; set; }
 
         [JsonProperty("FarmerBotConfigFile")]
         public string FarmerBotConfigFile { get; set; }
@@ -116,7 +124,7 @@ namespace FarmerBotWebUI.Shared
         public int FarmId { get; set; }
 
         [JsonProperty("Network")]
-        public string Network { get; set; }
+        public GridNetwork Network { get; set; }
 
         [JsonProperty("NetworkRelay")]
         public string NetworkRelay { get; set; }
@@ -132,6 +140,30 @@ namespace FarmerBotWebUI.Shared
 
         [JsonProperty("ApiCallInterval")]
         public int ApiCallInterval { get; set; } = 60;
+
+        [JsonProperty("WorkingDirectory")]
+        public string WorkingDirectory { get; set; }
+
+        [JsonProperty("DefaultComposeFile")]
+        public string DefaultComposeFile { get; set; }
+
+        [JsonProperty("DefaultEnvFile")]
+        public string DefaultEnvFile { get; set; }
+
+        [JsonProperty("DefaultFarmerBotConfigFile")]
+        public string DefaultFarmerBotConfigFile { get; set; }
+
+        [JsonProperty("DefaultFarmerBotLogFile")]
+        public string DefaultFarmerBotLogFile { get; set; }
+
+        [JsonProperty("WebUIGitHub")]
+        public string WebUIGitHub { get; set; }
+
+        [JsonProperty("FarmerBotGitHub")]
+        public string FarmerBotGitHub { get; set; }
+
+        [JsonProperty("DefaultComposeDlUrl")]
+        public string DefaultComposeDlUrl { get; set; }
     }
 
     public partial class NotificationSettings
@@ -177,5 +209,13 @@ namespace FarmerBotWebUI.Shared
                 new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.AssumeUniversal }
             },
         };
+    }
+
+    public enum GridNetwork
+    {
+        qa,
+        dev,
+        test,
+        main,
     }
 }

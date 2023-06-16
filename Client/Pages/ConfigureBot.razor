@@ -1,16 +1,95 @@
 ﻿@page "/configureBot"
+@using FarmerBotWebUI.Shared;
 @inject IFileService FileService
+@inject IAppSettings AppSettings
 
 <RadzenSplitter Orientation="Orientation.Horizontal" Collapse=@OnCollapse Expand=@OnExpand >
     <RadzenSplitterPane Size="50%" Min="10%" Max="70%">
         <RadzenSplitter Orientation="Orientation.Vertical" Collapse=@OnCollapse Expand=@OnExpand>
             <RadzenAccordion Multiple="true">
                 <Items>
-                    @foreach (var farmerBot in farmerBotList)
-                    {
-                        <RadzenAccordionItem Text="@(farmerBot.Name)" Icon="">
-                            @(farmerBot.FarmerBotConfig.FarmDefinition.Id)
-                        </RadzenAccordionItem>
+                    @foreach (var farmerBot in tempFarmerBotList)
+                    {                                        
+                        var botView = configureBotView.FirstOrDefault(b => b.BotName == farmerBot.Name);
+                        @if (botView != null)
+                        {
+                            <RadzenAccordionItem Text="@($"{farmerBot.Name} - {farmerBot.Id}")" Icon="">
+                                <RadzenAccordion Multiple="true">
+                                    <Items>
+                                        <RadzenAccordionItem Text="1 - General configuration" Icon="">
+                                            <RadzenFormField Text="Name" Variant="@variant" Style="width: 250px">
+                                                <RadzenTextBox @bind-Value="farmerBot.Name" />
+                                            </RadzenFormField>
+                                            <RadzenFormField Text="Id" Variant="@variant" Style="width: 250px">
+                                                <RadzenNumeric @bind-Value="farmerBot.Id" />
+                                            </RadzenFormField>
+                                            <RadzenFormField Text="WorkingDirectory" Variant="@variant" Style="width: 250px">
+                                                <RadzenTextBox @bind-Value="farmerBot.WorkingDirectory" />
+                                            </RadzenFormField>
+                                            <RadzenFormField Text="EnvFile" Variant="@variant" Style="width: 250px">
+                                                <RadzenTextBox @bind-Value="farmerBot.EnvFile" />
+                                            </RadzenFormField>
+                                            <RadzenFormField Text="ComposeFile" Variant="@variant" Style="width: 250px">
+                                                <RadzenTextBox @bind-Value="farmerBot.ComposeFile" />
+                                            </RadzenFormField>
+                                            <RadzenFormField Text="FarmerBotConfigFile" Variant="@variant" Style="width: 250px">
+                                                <RadzenTextBox @bind-Value="farmerBot.FarmerBotConfigFile" />
+                                            </RadzenFormField>
+                                            <RadzenFormField Text="FarmerBotLogFile" Variant="@variant" Style="width: 250px">
+                                                <RadzenTextBox @bind-Value="farmerBot.FarmerBotLogFile" />
+                                            </RadzenFormField>
+                                            <RadzenFormField Text="NetworkRelay (optional)" Variant="@variant" Style="width: 250px">
+                                                <RadzenTextBox @bind-Value="farmerBot.NetworkRelay" />
+                                            </RadzenFormField>
+                                            <RadzenFormField Text="Network" Variant="@variant" Style="width: 250px">
+                                                <RadzenTextBox @bind-Value="farmerBot.Network" />
+                                            </RadzenFormField>
+                                        </RadzenAccordionItem>
+                                        <RadzenAccordionItem Text="2 - .env" Icon="">
+
+                                        </RadzenAccordionItem>
+                                        <RadzenAccordionItem Text="3 - docker-compose.yaml" Icon="">
+                                            <RadzenStack>
+                                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                                    <RadzenLabel Text="Custom compose.yaml" />
+                                                    <RadzenSwitch @bind-Value=@botView.ComposeYamlView.ComposeSwitch Change=@(args => OnChange(args, "ComposeContentSwitch")) />
+                                                </RadzenStack>
+                                                @if (botView.ComposeYamlView.ComposeSwitch)
+                                                {
+                                                    var tempUrl = AppSettings.GeneralSettings.DefaultComposeDlUrl;
+                                                    <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                                        <RadzenFormField Text="Compose.yaml Url" Variant="@variant" Style="width: 500px">
+                                                            <RadzenTextBox @bind-Value="tempUrl" />
+                                                        </RadzenFormField>
+                                                        <RadzenButton Style="width: 270px" class="rz-border-radius-0 rz-ripple" Variant="Variant.Flat" Shade="Shade.Darker" Click=@(() => GetComposeFromGitHub(farmerBot.Name, tempUrl)) BusyText="Loading compose.yaml ..." IsBusy=@(botView.ComposeYamlView.BusyLoadingYaml) Text="Download compose.yaml" ButtonStyle="ButtonStyle.Secondary" />
+                                                    </RadzenStack>
+                                                    @if (!String.IsNullOrEmpty(botView.ComposeYamlView.TempComposeYaml))
+                                                    {
+                                                        <RadzenFormField Text="docker-compose.yaml" Variant="@variant" Style="width: 500px; height: 500px">
+                                                            <RadzenTextArea Placeholder="@(botView.ComposeYamlView.TempComposeYaml)" @bind-Value="botView.ComposeYamlView.TempComposeYaml" Cols="30" Rows="23" />
+                                                        </RadzenFormField>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    botView.ComposeYamlView.TempComposeYaml = farmerBot.DockerCompose.SerializeYaml();
+                                                    <RadzenFormField Text="docker-compose.yaml" Variant="@variant" Style="width: 500px; height: 500px">
+                                                        <RadzenTextArea Placeholder="Paste or Enter yaml-content here..." @bind-Value="botView.ComposeYamlView.TempComposeYaml" Cols="30" Rows="23" />
+                                                    </RadzenFormField>
+                                                }
+                                            </RadzenStack>
+                                        </RadzenAccordionItem>
+                                        <RadzenAccordionItem Text="4 - config.md" Icon="">
+
+                                        </RadzenAccordionItem>
+                                    </Items>
+                                </RadzenAccordion>
+                            </RadzenAccordionItem>
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.H3">Something went totally wrong</RadzenText>
+                        }
                     }
                 </Items>
             </RadzenAccordion>
@@ -24,16 +103,72 @@
 </RadzenSplitter>
 
 @code {
-    List<FarmerBot> farmerBotList = new List<FarmerBot>();
+    private List<FarmerBot> tempFarmerBotList = new List<FarmerBot>();
+    private List<ConfigureBotView> configureBotView = new List<ConfigureBotView>();
+    private Variant variant = Variant.Outlined;
+
+    private bool busy = false;
 
     protected override async Task OnInitializedAsync()
     {
         EventSourceActionId eventSourceActionId = new EventSourceActionId { Action = EventAction.GetFarmerBot, Source = EventSource.ClientStartup, Typ = EventTyp.ClientJob };
         await FileService.GetFarmerBotListAsync(eventSourceActionId).ContinueWith((task) =>
         {
-            farmerBotList = FileService.ActualFarmerBotList;
+            tempFarmerBotList = FileService.ActualFarmerBotList;
+            // if no new FarmerBot found, create a new empty one
+            var foundBot = tempFarmerBotList.Find(f => f.Name == "New FarmerBot");
+            if (foundBot == null || foundBot.Name != "New FarmerBot")
+            {
+                tempFarmerBotList.Add(new FarmerBot
+                {
+                    WorkingDirectory = AppSettings.GeneralSettings.WorkingDirectory,
+                    EnvFile = AppSettings.GeneralSettings.DefaultEnvFile,
+                    FarmerBotConfigFile = AppSettings.GeneralSettings.DefaultFarmerBotConfigFile,
+                    FarmerBotLogFile = AppSettings.GeneralSettings.DefaultFarmerBotLogFile,
+                    ComposeFile = AppSettings.GeneralSettings.DefaultComposeFile,
+                });
+            }
+            else
+            {
+                //handling?
+            }
+            foreach (var farmerBot in tempFarmerBotList)
+            {
+                configureBotView.Add(new ConfigureBotView
+                    {
+                        BotName = farmerBot.Name,
+                        Id = farmerBot.Id
+                    });
+            }
             StateHasChanged();
         });
+    }
+
+    async void GetComposeFromGitHub(string botName, string url)
+    {
+        busy = true;
+        StateHasChanged();
+
+        HttpClient client = new HttpClient();
+        string getStringTask = await client.GetStringAsync(url);
+
+        busy = false;
+        StateHasChanged();
+
+        var botView = configureBotView.FirstOrDefault(b => b.BotName == botName);
+        if (botView != null)
+        {
+            var tempComposeYaml= botView.ComposeYamlView.TempComposeYaml = getStringTask;
+            if (tempComposeYaml != null)
+            {
+                botView.ComposeYamlView.TempComposeYaml = getStringTask;
+            }
+        }
+    }
+
+    void OnChange(bool? value, string name)
+    {
+        StateHasChanged();
     }
 
     void OnCollapse(RadzenSplitterEventArgs args)
