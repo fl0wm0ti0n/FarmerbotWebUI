@@ -38,9 +38,11 @@ public enum EventSource
         SettingsService,
         DockerService,
         NodeStatusService,
+        NodeMintingReportService,
         BotStatusService,
         FileService,
         TfGraphQlApiClient,
+        NodeMintingApiClient,
         ClientStartup,
         ServerStartup
     }
@@ -64,6 +66,7 @@ public enum EventSource
         GetSettings,
         SetSettings,
         GetFarmerBot,
-        SetFarmerBot
+        SetFarmerBot,
+        GetNodeMinting
     }
 }

@@ -25,6 +25,7 @@ builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IDockerService, DockerService>();
 builder.Services.AddScoped<ITfGraphQLApiClient, TfGraphQLApiClient>();
+builder.Services.AddScoped<INodeMintingApiClient, NodeMintingApiClient>();
 builder.Services.AddScoped<INodeStatusService, NodeStatusService>();
 
 var app = builder.Build();
@@ -35,13 +36,18 @@ using (var scope1 = app.Services.CreateScope())
 {
     var settingsService = scope1.ServiceProvider.GetRequiredService<ISettingsService>();
     _ = await settingsService.ReloadConfiguration();
-
 }
+
 using (var scope2 = app.Services.CreateScope())
 {
     var tfGraphQLApiClient = scope2.ServiceProvider.GetRequiredService<ITfGraphQLApiClient>();
-    //_ = await tfGraphQLApiClient.GetNodesListAsync(CancellationToken.None);
     _ = await tfGraphQLApiClient.StartStatusInterval();
+}
+
+using (var scope3 = app.Services.CreateScope())
+{
+    var nbodeMintingApiClient = scope3.ServiceProvider.GetRequiredService<INodeMintingApiClient>();
+    _ = await nbodeMintingApiClient.StartStatusInterval();
 }
 
 app.UseSwaggerUI();

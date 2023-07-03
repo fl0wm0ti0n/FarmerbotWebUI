@@ -71,8 +71,7 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
             else if (await CheckGridNodesAreThere(cancellationToken))
             {
                 // get the right Node-list with farmId which is present in botconfig
-                Nodes rawNodeResult = _tfGraphQLApiClient.RawApiData.FirstOrDefault(r => r.FarmId == bot.FarmId);
-
+                var rawNodeResult = _tfGraphQLApiClient.RawApiData.FirstOrDefault(r => r.FarmId == bot.FarmId);
 
                 if (rawNodeResult == null)
                 {

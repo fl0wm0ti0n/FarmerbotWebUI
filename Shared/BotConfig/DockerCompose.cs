@@ -50,8 +50,6 @@ namespace FarmerbotWebUI.Shared.BotConfig
             {
                 var result = serializer.Serialize(this);
 
-                var commandString = SerializeCommand();
-
                 return result;
             }
             catch (Exception ex)

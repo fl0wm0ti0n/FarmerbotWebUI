@@ -189,8 +189,8 @@ namespace FarmerBotWebUI.Shared
         [JsonProperty("GridProxy")]
         public Uri GridProxy { get; set; }
 
-        [JsonProperty("ApiCallInterval")]
-        public int ApiCallInterval { get; set; }
+        [JsonProperty("NodeMintingApi")]
+        public Uri NodeMintingApi { get; set; }
     }
 
     public static class Serialize
