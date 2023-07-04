@@ -12,6 +12,7 @@ namespace FarmerbotWebUI.Server.Services.Minting
         private IAppSettings _appSettings;
         private readonly INodeMintingApiClient _nodeMintingApiClient;
         private readonly IFileService _fileService;
+        public List<NodeMintingCollection> ActualMintingReportCollectionList { get; private set; } = new List<NodeMintingCollection>();
 
         public NodeMintingReportService(IAppSettings appSettings, INodeMintingApiClient nodeMintingApiClient, IFileService fileService)
         {
@@ -38,6 +39,8 @@ namespace FarmerbotWebUI.Server.Services.Minting
                 if (nodeCollection.Success)
                 {
                     nodeStatusCollection.Add(nodeCollection.Data);
+                    ActualMintingReportCollectionList.Remove(nodeCollection.Data);
+                    ActualMintingReportCollectionList.Add(nodeCollection.Data);
                 }
                 else
                 {
@@ -128,7 +131,7 @@ namespace FarmerbotWebUI.Server.Services.Minting
             throw new NotImplementedException();
         }
 
-        private async Task<bool> CheckMintingReportsAreThere (CancellationToken cancellationToken)
+        public async Task<bool> CheckMintingReportsAreThere (CancellationToken cancellationToken)
         {
             if (_nodeMintingApiClient.RawApiData.Count == 0)
             {

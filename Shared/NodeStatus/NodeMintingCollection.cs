@@ -6,12 +6,12 @@ namespace FarmerbotWebUI.Shared.NodeStatus
 {
     public class NodeMintingCollection
     {
-        public List<MintingReport> NodeStatusSets { get; set; } = new List<MintingReport>();
+        public Dictionary<int, List<MintingReport>> MintingReports { get; set; } = new Dictionary<int, List<MintingReport>>();
         public Farm Farm { get; set; } = new Farm();
         public string BotName { get; set; } = string.Empty;
         public DateTime LastUpdate { get; set; }
         public bool NoStatus { get; set; } = false;
-        public bool IsError() => NodeStatusSets.Any(n => n.IsError == true);
-        public string ErrorMessage => NodeStatusSets.Aggregate(new StringBuilder(), (sb, n) => sb.AppendLine(n.ErrorMessage)).ToString();
+        public bool IsError() => MintingReports.Any(n => n.Value.IsError == true);
+        public string ErrorMessage => MintingReports.Aggregate(new StringBuilder(), (sb, n) => sb.AppendLine(n.Value.ErrorMessage)).ToString();
     }
 }

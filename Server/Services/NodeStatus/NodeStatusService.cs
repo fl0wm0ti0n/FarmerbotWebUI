@@ -12,6 +12,7 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
         private IAppSettings _appSettings;
         private readonly ITfGraphQLApiClient _tfGraphQLApiClient;
         private readonly IFileService _fileService;
+        public List<NodeStatusCollection> ActualNodeStatusCollectionList { get; private set; } = new List<NodeStatusCollection>();
 
         public NodeStatusService(IAppSettings appSettings, ITfGraphQLApiClient tfGraphQLApiClient, IFileService fileService)
         {
@@ -38,6 +39,8 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
                 if (nodeCollection.Success)
                 {
                     nodeStatusCollection.Add(nodeCollection.Data);
+                    ActualNodeStatusCollectionList.Remove(nodeCollection.Data);
+                    ActualNodeStatusCollectionList.Add(nodeCollection.Data);
                 }
                 else
                 {
@@ -163,7 +166,7 @@ namespace FarmerbotWebUI.Server.Services.NodeStatus
             throw new NotImplementedException();
         }
 
-        private async Task<bool> CheckGridNodesAreThere (CancellationToken cancellationToken)
+        public async Task<bool> CheckGridNodesAreThere (CancellationToken cancellationToken)
         {
             if (_tfGraphQLApiClient.RawApiData.Count == 0)
             {

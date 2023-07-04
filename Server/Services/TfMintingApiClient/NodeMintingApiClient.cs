@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FarmerbotWebUI.Client.Services.EventConsole;
+using FarmerbotWebUI.Server.Services.NodeStatus;
 using FarmerbotWebUI.Shared.NodeStatus;
 using FarmerBotWebUI.Shared;
 using FarmerBotWebUI.Shared.NodeStatus;
@@ -20,13 +21,15 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
     {
         private readonly HttpClient _client;
         private IAppSettings _appSettings;
+        private readonly INodeStatusService _nodeStatusService;
         private SemaphoreSlim _statusSemaphore = new SemaphoreSlim(1);
         private bool _lockInterval = false;
-        public Dictionary<string, List<MintingReport>> RawApiData { get; private set; } = new Dictionary<string, List<MintingReport>>();
+        public List<NodeMintingCollection> RawApiData { get; private set; } = new List<NodeMintingCollection>();
 
-        public NodeMintingApiClient(IAppSettings appSettings)
+        public NodeMintingApiClient(IAppSettings appSettings, INodeStatusService nodeStatusService)
         {
             _appSettings = appSettings;
+            _nodeStatusService = nodeStatusService;
             _appSettings.OnAppSettingsChanged += UpdateAppSettings;
             _client = new HttpClient();
         }
@@ -70,13 +73,13 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             return await taskCompletionSource.Task;
         }
 
-        public async Task<ServiceResponse<Dictionary<string, List<MintingReport>>>> GetMintingOfaNodeListAsync(CancellationToken cancellationToken)
+        public async Task<ServiceResponse<List<NodeMintingCollection>>> GetMintingCollectionListAsync(CancellationToken cancellationToken)
         {
             string errorMessage = "";
             bool error = false;
             foreach (var bot in _appSettings.FarmerBotSettings.Bots)
             {
-                var nodes = await GetMintingOfaNodeAsync(cancellationToken);
+                var nodes = await GetMintingCollectionAsync(botName, cancellationToken);
                 if (!nodes.Success)
                 {
                     errorMessage += $"Nodes From FarmerBot {bot.BotName} error: \n";
@@ -94,13 +97,49 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             };
         }
 
-        public async Task<ServiceResponse<List<MintingReport>>> GetMintingOfaNodeAsync(CancellationToken cancellationToken)
+        public async Task<ServiceResponse<NodeMintingCollection>> GetMintingCollectionAsync(string botName, CancellationToken cancellationToken)
         {
-            int farmId = 158;
+            string errorMessage = "";
+            bool error = false;
+            NodeMintingCollection nodeMintingReportsDict = new NodeMintingCollection();
+
+            if (await _nodeStatusService.CheckGridNodesAreThere(cancellationToken))
+            {
+                var rawNodeStatusList = await _nodeStatusService.GetNodeStatusListAsync(cancellationToken);
+                if (rawNodeStatusList.Success)
+                {
+                    foreach (var node in rawNodeStatusList.Data)
+                    {
+                        var nodeId = node.NodeStatusSets.FirstOrDefault(i => i.BotName == botName).GridNode.NodeId;
+                        var rawNodeMintingReportList = await GetMintingOfaNodeAsync(nodeId, cancellationToken);
+
+                        if (!rawNodeMintingReportList.Success)
+                        {
+                            errorMessage += $"Getting MintingReports From Node {nodeId} error: \n";
+                            errorMessage += $"{rawNodeMintingReportList.Message}\n";
+                            error = true;
+                        }
+                        nodeMintingReportsDict.MintingReports.Add(nodeId, rawNodeMintingReportList.Data);
+                    }
+                }
+            }
+
+            return new ServiceResponse<NodeMintingCollection>
+            {
+                Data = nodeMintingReportsDict,
+                Message = errorMessage,
+                Success = !error
+            };
+        }
+
+        public async Task<ServiceResponse<List<MintingReport>>> GetMintingOfaNodeAsync(int nodeId, CancellationToken cancellationToken)
+        {
             // TODO: Get Nodes from FarmerBot over graphapi and iterate thru them
+
             try
             {
                 var url = _appSettings.ThreefoldApiSettings.FirstOrDefault(g => g.Net == _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.FarmId == farmId).Network.ToString()).NodeMintingApi;
+                url = url.Replace("{nodeId}", nodeId.ToString());
                 var response = await _client.GetAsync(url, cancellationToken);
 
                 if (response.IsSuccessStatusCode)
@@ -133,7 +172,6 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
                     Success = false
                 };
             }
-
         }
 
         public void Dispose()
