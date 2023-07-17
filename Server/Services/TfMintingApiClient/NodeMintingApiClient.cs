@@ -24,7 +24,7 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
         private readonly INodeStatusService _nodeStatusService;
         private SemaphoreSlim _statusSemaphore = new SemaphoreSlim(1);
         private bool _lockInterval = false;
-        public List<NodeMintingCollection> RawApiData { get; private set; } = new List<NodeMintingCollection>();
+        public Dictionary<string, List<NodeMintingCollection>> RawApiData { get; private set; } = new Dictionary<string, List<NodeMintingCollection>>();
 
         public NodeMintingApiClient(IAppSettings appSettings, INodeStatusService nodeStatusService)
         {
@@ -73,23 +73,23 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             return await taskCompletionSource.Task;
         }
 
-        public async Task<ServiceResponse<List<NodeMintingCollection>>> GetMintingCollectionListAsync(CancellationToken cancellationToken)
+        public async Task<ServiceResponse<Dictionary<string, List<NodeMintingCollection>>>> GetMintingCollectionListAsync(CancellationToken cancellationToken)
         {
             string errorMessage = "";
             bool error = false;
             foreach (var bot in _appSettings.FarmerBotSettings.Bots)
             {
-                var nodes = await GetMintingCollectionAsync(botName, cancellationToken);
+                var nodes = await GetMintingCollectionAsync(bot.BotName, cancellationToken);
                 if (!nodes.Success)
                 {
                     errorMessage += $"Nodes From FarmerBot {bot.BotName} error: \n";
                     errorMessage += $"{nodes.Message}\n";
                     error = true;
                 }
-                RawApiData.Add(bot.BotName, nodes.Data);
+                RawApiData.Add(bot.BotName, new List<NodeMintingCollection> { nodes.Data });
             }
 
-            return new ServiceResponse<Dictionary<string, List<MintingReport>>>
+            return new ServiceResponse<Dictionary<string, List<NodeMintingCollection>>>
             {
                 Data = RawApiData,
                 Message = errorMessage,
@@ -111,7 +111,8 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
                     foreach (var node in rawNodeStatusList.Data)
                     {
                         var nodeId = node.NodeStatusSets.FirstOrDefault(i => i.BotName == botName).GridNode.NodeId;
-                        var rawNodeMintingReportList = await GetMintingOfaNodeAsync(nodeId, cancellationToken);
+                        var farmId = node.NodeStatusSets.FirstOrDefault(i => i.BotName == botName).GridNode.FarmId;
+                        var rawNodeMintingReportList = await GetMintingOfaNodeAsync(nodeId, farmId, cancellationToken);
 
                         if (!rawNodeMintingReportList.Success)
                         {
@@ -132,14 +133,14 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
             };
         }
 
-        public async Task<ServiceResponse<List<MintingReport>>> GetMintingOfaNodeAsync(int nodeId, CancellationToken cancellationToken)
+        public async Task<ServiceResponse<List<MintingReport>>> GetMintingOfaNodeAsync(int nodeId, int farmId, CancellationToken cancellationToken)
         {
             // TODO: Get Nodes from FarmerBot over graphapi and iterate thru them
 
             try
             {
-                var url = _appSettings.ThreefoldApiSettings.FirstOrDefault(g => g.Net == _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.FarmId == farmId).Network.ToString()).NodeMintingApi;
-                url = url.Replace("{nodeId}", nodeId.ToString());
+                string urlString = _appSettings.ThreefoldApiSettings.FirstOrDefault(g => g.Net == _appSettings.FarmerBotSettings.Bots.FirstOrDefault(b => b.FarmId == farmId).Network.ToString()).NodeMintingApi.ToString();
+                Uri url = new Uri(urlString.Replace("{nodeId}", nodeId.ToString()));
                 var response = await _client.GetAsync(url, cancellationToken);
 
                 if (response.IsSuccessStatusCode)
@@ -177,6 +178,16 @@ namespace FarmerbotWebUI.Server.Services.TfApiClient
         public void Dispose()
         {
             _appSettings.OnAppSettingsChanged -= UpdateAppSettings;
+        }
+
+        public Task<ServiceResponse<Dictionary<string, List<MintingReport>>>> GetMintingOfaNodeListAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ServiceResponse<List<MintingReport>>> GetMintingOfaNodeAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

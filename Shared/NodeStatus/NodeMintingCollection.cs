@@ -11,7 +11,7 @@ namespace FarmerbotWebUI.Shared.NodeStatus
         public string BotName { get; set; } = string.Empty;
         public DateTime LastUpdate { get; set; }
         public bool NoStatus { get; set; } = false;
-        public bool IsError() => MintingReports.Any(n => n.Value.IsError == true);
-        public string ErrorMessage => MintingReports.Aggregate(new StringBuilder(), (sb, n) => sb.AppendLine(n.Value.ErrorMessage)).ToString();
+        public bool IsError() => MintingReports.Any(n => n.Value.Any(e => e.IsError == true));
+        public string ErrorMessage => MintingReports.Aggregate(new StringBuilder(), (sb, n) => sb.AppendLine(n.Value.FirstOrDefault(e => e.ErrorMessage != "").ErrorMessage)).ToString();
     }
 }
